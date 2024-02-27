@@ -1,5 +1,7 @@
 package utilities;
 
+import message.Metadata;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
@@ -15,7 +17,8 @@ public class CustomSerializationUtil {
                 field.setAccessible(true);
                 Object value = field.get(obj);
                 byte[] valueBytes = marshalFieldValue(value);
-                fieldBytes.add(valueBytes);
+                if(valueBytes != null)
+                    fieldBytes.add(valueBytes);
             }
         }
         return concatenateByteArrays(fieldBytes);
@@ -32,9 +35,7 @@ public class CustomSerializationUtil {
         }
     }
 
-    private static byte[] marshalFieldValue(Object value) {
-        //ToDo: Need to implement to marshal Metadata object/object in general
-
+    private static byte[] marshalFieldValue(Object value) throws IllegalAccessException {
         // Implement custom logic for marshalling different types
         if (value instanceof Integer) {
             return ByteBuffer.allocate(Integer.BYTES).putInt((Integer) value).array();
@@ -43,12 +44,14 @@ public class CustomSerializationUtil {
             byte[] lengthBytes = ByteBuffer.allocate(Integer.BYTES).putInt(stringBytes.length).array();
             List<byte[]> contentBytes = Arrays.asList(lengthBytes, stringBytes);
             return concatenateByteArrays(contentBytes);
+        }else if (value instanceof Metadata){
+            return marshal(value);
         }
         // Add more cases as needed for other data types
         throw new IllegalArgumentException("Unsupported data type: " + value.getClass().getName());
     }
 
-    private static Object unmarshalFieldValue(Class<?> fieldType, ByteBuffer buffer) {
+    private static Object unmarshalFieldValue(Class<?> fieldType, ByteBuffer buffer) throws IllegalAccessException {
         // Implement custom logic for unmarshalling different types
         if (fieldType == int.class || fieldType == Integer.class) {
             return buffer.getInt();
@@ -57,6 +60,16 @@ public class CustomSerializationUtil {
             byte[] stringBytes = new byte[length];
             buffer.get(stringBytes);
             return new String(stringBytes);
+        }else if(fieldType == Metadata.class){
+            /*Since object is last in the byteArray simply get remaining or calculate via
+            byte[] metadataBytes = new byte[data.length - (4 * Integer.BYTES) - (commandType.length() + filePath.length() + errorMessage.length())];*/
+            int length = buffer.remaining();
+            byte[] metadataBytes = new byte[length];
+            buffer.get(metadataBytes);
+
+            Metadata newMetadata = new Metadata();
+            unmarshal(newMetadata, metadataBytes);
+            return newMetadata;
         }
         // Add more cases as needed for other data types
         throw new IllegalArgumentException("Unsupported data type: " + fieldType.getName());
