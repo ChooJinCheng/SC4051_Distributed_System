@@ -1,6 +1,6 @@
 package message;
 
-public class Metadata {
+public class Metadata extends BaseMessage{
     private String fileLocation;
     private String modifiedDate;
 

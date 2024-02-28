@@ -6,7 +6,6 @@ public class Message {
     private String filePath;
     private int statusCode;
     private String errorMessage;
-    private Metadata metadata;
 
     // Constructors, getters, setters, and other methods
     public Message () {
@@ -51,13 +50,5 @@ public class Message {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
-    }
-
-    public Metadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Metadata metadata) {
-        this.metadata = metadata;
     }
 }
