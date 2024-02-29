@@ -1,15 +1,24 @@
 package message;
 
-public class Message {
+public class BaseMessage {
     private int requestID;
     private String commandType;
     private String filePath;
+    private String content;
     private int statusCode;
     private String errorMessage;
 
     // Constructors, getters, setters, and other methods
-    public Message () {
+    public BaseMessage() {
 
+    }
+    public BaseMessage(int requestID, String commandType, String filePath, String content, int statusCode, String errorMessage) {
+        this.requestID = requestID;
+        this.commandType = commandType;
+        this.filePath = filePath;
+        this.content = content;
+        this.statusCode = statusCode;
+        this.errorMessage = errorMessage;
     }
 
     public int getRequestID() {
@@ -34,6 +43,14 @@ public class Message {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public int getStatusCode() {

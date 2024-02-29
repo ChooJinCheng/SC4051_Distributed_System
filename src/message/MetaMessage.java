@@ -1,27 +1,20 @@
 package message;
 
-public class Metadata extends BaseMessage{
-    private String fileLocation;
-    private String modifiedDate;
+import models.Metadata;
 
-    // Constructors, getters, setters, and other methods
-    public Metadata () {
+public class MetaMessage extends BaseMessage{
+    private Metadata metadata;
 
+    public MetaMessage(){
+        super();
     }
 
-    public String getFileLocation() {
-        return fileLocation;
+
+    public Metadata getMetadata() {
+        return metadata;
     }
 
-    public void setFileLocation(String fileLocation) {
-        this.fileLocation = fileLocation;
-    }
-
-    public String getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
     }
 }

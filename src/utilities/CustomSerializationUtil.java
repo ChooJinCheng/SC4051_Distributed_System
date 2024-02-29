@@ -1,6 +1,7 @@
 package utilities;
 
-import message.Metadata;
+import models.Metadata;
+import models.MonitorClient;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -9,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ * When introducing new field type, need to implement it in both Marshalling and Unmarshalling
+ *
+ * */
 public class CustomSerializationUtil {
     public static byte[] marshal(Object obj) throws IllegalAccessException {
         List<byte[]> fieldBytes = new ArrayList<>();
@@ -17,7 +22,7 @@ public class CustomSerializationUtil {
                 field.setAccessible(true);
                 Object value = field.get(obj);
                 byte[] valueBytes = marshalFieldValue(value);
-                if(valueBytes != null)
+                if (valueBytes != null)
                     fieldBytes.add(valueBytes);
             }
         }
@@ -26,13 +31,7 @@ public class CustomSerializationUtil {
 
     public static void unmarshal(Object obj, byte[] data) throws IllegalAccessException {
         ByteBuffer buffer = ByteBuffer.wrap(data);
-        for (Field field : getAllFields(obj.getClass())) {
-            if (!Modifier.isTransient(field.getModifiers())) {
-                field.setAccessible(true);
-                Object value = unmarshalFieldValue(field.getType(), buffer);
-                field.set(obj, value);
-            }
-        }
+        unmarshalObject(obj, buffer);
     }
 
     private static byte[] marshalFieldValue(Object value) throws IllegalAccessException {
@@ -44,10 +43,9 @@ public class CustomSerializationUtil {
             byte[] lengthBytes = ByteBuffer.allocate(Integer.BYTES).putInt(stringBytes.length).array();
             List<byte[]> contentBytes = Arrays.asList(lengthBytes, stringBytes);
             return concatenateByteArrays(contentBytes);
-        }else if (value instanceof Metadata){
+        } else if (value instanceof Metadata || value instanceof MonitorClient) {
             return marshal(value);
         }
-        // Add more cases as needed for other data types
         throw new IllegalArgumentException("Unsupported data type: " + value.getClass().getName());
     }
 
@@ -60,18 +58,15 @@ public class CustomSerializationUtil {
             byte[] stringBytes = new byte[length];
             buffer.get(stringBytes);
             return new String(stringBytes);
-        }else if(fieldType == Metadata.class){
-            /*Since object is last in the byteArray simply get remaining or calculate via
-            byte[] metadataBytes = new byte[data.length - (4 * Integer.BYTES) - (commandType.length() + filePath.length() + errorMessage.length())];*/
-            int length = buffer.remaining();
-            byte[] metadataBytes = new byte[length];
-            buffer.get(metadataBytes);
-
+        } else if (fieldType == Metadata.class) {
             Metadata newMetadata = new Metadata();
-            unmarshal(newMetadata, metadataBytes);
+            unmarshalObject(newMetadata, buffer);
             return newMetadata;
+        } else if (fieldType == MonitorClient.class) {
+            MonitorClient newMonitorClient = new MonitorClient();
+            unmarshalObject(newMonitorClient, buffer);
+            return newMonitorClient;
         }
-        // Add more cases as needed for other data types
         throw new IllegalArgumentException("Unsupported data type: " + fieldType.getName());
     }
 
@@ -82,6 +77,16 @@ public class CustomSerializationUtil {
             buffer.put(bytes);
         }
         return buffer.array();
+    }
+
+    private static void unmarshalObject(Object obj, ByteBuffer buffer) throws IllegalAccessException {
+        for (Field field : getAllFields(obj.getClass())) {
+            if (!Modifier.isTransient(field.getModifiers())) {
+                field.setAccessible(true);
+                Object value = unmarshalFieldValue(field.getType(), buffer);
+                field.set(obj, value);
+            }
+        }
     }
 
     private static List<Field> getAllFields(Class<?> type) {
