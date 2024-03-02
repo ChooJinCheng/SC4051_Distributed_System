@@ -1,4 +1,4 @@
-package message;
+package server;
 
 public class ServerRequestIDGenerator {
     private static final int MAX_REQUEST_ID = Integer.MAX_VALUE;

@@ -1,4 +1,4 @@
-package server;
+package server.services;
 
 import utilities.FilePathUtil;
 import utilities.PropertyUtil;
@@ -23,8 +23,15 @@ import java.util.Properties;
  * */
 public class FileAccessService {
     //ToDo: Change return String error to throw error instead
+    private static FileAccessService fileAccessService;
+    private FileAccessService (){}
+    public static synchronized FileAccessService getInstance() {
+        if (fileAccessService == null) {
+            fileAccessService = new FileAccessService();
+        }
+        return fileAccessService;
+    }
     public String readFileContent(String inputFilePath, long inputOffset, int inputReadLength) {
-
         try {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);

@@ -1,9 +1,11 @@
 package utilities;
 
+import message.BaseMessage;
 import models.Metadata;
 import models.MonitorClient;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -29,9 +31,16 @@ public class CustomSerializationUtil {
         return concatenateByteArrays(fieldBytes);
     }
 
-    public static void unmarshal(Object obj, byte[] data) throws IllegalAccessException {
-        ByteBuffer buffer = ByteBuffer.wrap(data);
+    public static void unmarshal(Object obj, ByteBuffer buffer) throws IllegalAccessException {
         unmarshalObject(obj, buffer);
+    }
+
+    public static String unmarshalMessageType(ByteBuffer buffer){
+        int length = buffer.getInt();
+        byte[] stringBytes = new byte[length];
+        buffer.get(stringBytes);
+
+        return new String(stringBytes);
     }
 
     private static byte[] marshalFieldValue(Object value) throws IllegalAccessException {
@@ -43,7 +52,7 @@ public class CustomSerializationUtil {
             byte[] lengthBytes = ByteBuffer.allocate(Integer.BYTES).putInt(stringBytes.length).array();
             List<byte[]> contentBytes = Arrays.asList(lengthBytes, stringBytes);
             return concatenateByteArrays(contentBytes);
-        } else if (value instanceof Metadata || value instanceof MonitorClient) {
+        } else if (value instanceof BaseMessage || value instanceof Metadata || value instanceof MonitorClient) {
             return marshal(value);
         }
         throw new IllegalArgumentException("Unsupported data type: " + value.getClass().getName());
@@ -58,7 +67,7 @@ public class CustomSerializationUtil {
             byte[] stringBytes = new byte[length];
             buffer.get(stringBytes);
             return new String(stringBytes);
-        } else if (fieldType == Metadata.class) {
+        }else if (fieldType == Metadata.class) {
             Metadata newMetadata = new Metadata();
             unmarshalObject(newMetadata, buffer);
             return newMetadata;
@@ -70,15 +79,6 @@ public class CustomSerializationUtil {
         throw new IllegalArgumentException("Unsupported data type: " + fieldType.getName());
     }
 
-    private static byte[] concatenateByteArrays(List<byte[]> byteArrays) {
-        int totalLength = byteArrays.stream().mapToInt(bytes -> bytes.length).sum();
-        ByteBuffer buffer = ByteBuffer.allocate(totalLength);
-        for (byte[] bytes : byteArrays) {
-            buffer.put(bytes);
-        }
-        return buffer.array();
-    }
-
     private static void unmarshalObject(Object obj, ByteBuffer buffer) throws IllegalAccessException {
         for (Field field : getAllFields(obj.getClass())) {
             if (!Modifier.isTransient(field.getModifiers())) {
@@ -87,6 +87,20 @@ public class CustomSerializationUtil {
                 field.set(obj, value);
             }
         }
+    }
+
+    private static void skipToMessageBytes(ByteBuffer buffer){
+        int length = buffer.getInt();
+        buffer.position(buffer.position() + length);
+    }
+
+    private static byte[] concatenateByteArrays(List<byte[]> byteArrays) {
+        int totalLength = byteArrays.stream().mapToInt(bytes -> bytes.length).sum();
+        ByteBuffer buffer = ByteBuffer.allocate(totalLength);
+        for (byte[] bytes : byteArrays) {
+            buffer.put(bytes);
+        }
+        return buffer.array();
     }
 
     private static List<Field> getAllFields(Class<?> type) {

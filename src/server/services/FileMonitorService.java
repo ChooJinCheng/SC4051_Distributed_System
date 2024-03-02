@@ -1,7 +1,7 @@
-package server;
+package server.services;
 
 import message.BaseMessage;
-import message.ServerRequestIDGenerator;
+import server.ServerRequestIDGenerator;
 import models.MessageWrapper;
 import models.MonitorClient;
 import utilities.CustomSerializationUtil;
@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-import java.sql.Wrapper;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,7 +27,15 @@ public class FileMonitorService {
     private static final Map<String, List<MonitorClient>> registeredClients = new HashMap<>();
     private static final Map<String, AtomicBoolean> runningThreads = new HashMap<>();
     private static final Map<String, ReentrantLock> filePathLocks = new HashMap<>();
+    private static FileMonitorService fileMonitorService;
 
+    private FileMonitorService (){}
+    public static synchronized FileMonitorService getInstance() {
+        if (fileMonitorService == null) {
+            fileMonitorService = new FileMonitorService();
+        }
+        return fileMonitorService;
+    }
     //ToDo: Change return String error to throw error instead
     public String registerClient(String inputFilePath, MonitorClient monitorClient) {
         String fullFilePath = FilePathUtil.getFullPathString(inputFilePath);
@@ -112,7 +119,7 @@ public class FileMonitorService {
         }
     }
 
-    public void unregisterClient(String fullFilePath, List<MonitorClient> clients) {
+    private void unregisterClient(String fullFilePath, List<MonitorClient> clients) {
         if (clients != null) {
             clients.removeIf(client -> {
                 client.setMonitorInterval(client.getMonitorInterval() - 1); // Decrease by 1 second (simulated time)
