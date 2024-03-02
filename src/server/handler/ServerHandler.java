@@ -18,6 +18,7 @@ public class ServerHandler {
         byte[] reply = new byte[0];
         ByteBuffer buffer = ByteBuffer.wrap(requestData);
         String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
+        System.out.println(messageType);
 
         if(messageType.equals(baseMessageClassName)){
             BaseMessage baseMessage = new BaseMessage();
@@ -43,7 +44,7 @@ public class ServerHandler {
     }
 
     private void processBaseMessage(BaseMessage baseMessage){
-        
+
     }
 
     private void processMetaMessage(MetaMessage metaMessage){

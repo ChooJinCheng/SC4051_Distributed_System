@@ -100,7 +100,7 @@ public class FileMonitorService {
 
                     //ToDo: Update the proper message for notifying client
                     BaseMessage baseMessage = new BaseMessage(ServerRequestIDGenerator.getNextRequestId(),"CALLBACK",
-                            "", new String(updatedContent), 200, "");
+                            "", new String(updatedContent));
                     MessageWrapper wrapperMessage = new MessageWrapper(baseMessage.getClass().getSimpleName(), baseMessage);
                     byte[] sendBuffer = CustomSerializationUtil.marshal(wrapperMessage);
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);

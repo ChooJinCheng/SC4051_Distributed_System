@@ -57,7 +57,7 @@ public class FileAccessService {
         }
     }
 
-    public String insertIntoFile(String inputFilePath, long inputOffset, byte[] content) {
+    public String insertIntoFile(String inputFilePath, long inputOffset, String content) {
         try {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
@@ -76,7 +76,7 @@ public class FileAccessService {
                 randomAccessFile.read(originalContent);
 
                 randomAccessFile.seek(inputOffset);
-                randomAccessFile.write(content);
+                randomAccessFile.write(content.getBytes());
                 randomAccessFile.write(originalContent);
 
                 return "Insertion successful.";
