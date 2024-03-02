@@ -3,6 +3,7 @@ package server.handler;
 import message.BaseMessage;
 import message.MetaMessage;
 import message.MonitorMessage;
+import message.ReplyMessage;
 import server.services.FileAccessService;
 import server.services.FileMonitorService;
 import utilities.CustomSerializationUtil;
@@ -36,7 +37,8 @@ public class ServerHandler {
             MonitorMessage monitorMessage = new MonitorMessage();
             CustomSerializationUtil.unmarshal(monitorMessage, buffer);
             processMonitorMessage(monitorMessage);
-            reply = CustomSerializationUtil.marshal(monitorMessage);
+            ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getRequestID(), monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent(), 200, "SUCCCESS");
+            reply = CustomSerializationUtil.marshal(replyMessage);
         }else{
             //ToDo: Throw error/exception
         }

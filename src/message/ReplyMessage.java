@@ -2,11 +2,14 @@ package message;
 
 public class ReplyMessage extends BaseMessage{
     private int statusCode;
-    private String errorMessage;
+    private String statusMessage;
 
-    public ReplyMessage(int requestID, String commandType, String filePath, String content, int statusCode, String errorMessage) {
+    public ReplyMessage() {
+
+    }
+    public ReplyMessage(int requestID, String commandType, String filePath, String content, int statusCode, String statusMessage) {
         super(requestID, commandType, filePath, content);
         this.statusCode = statusCode;
-        this.errorMessage = errorMessage;
+        this.statusMessage = statusMessage;
     }
 }

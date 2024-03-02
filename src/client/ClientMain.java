@@ -1,9 +1,6 @@
 package client;
 
-import message.BaseMessage;
-import message.MetaMessage;
-import message.MonitorMessage;
-import message.RequestMessage;
+import message.*;
 import models.MessageWrapper;
 import models.Metadata;
 import models.MonitorClient;
@@ -40,17 +37,29 @@ public class ClientMain {
         String requestID = ipAddress + "/" + currRequestID; // once server side ID change to string, change to this
         switch (command) {
             case "monitor":
+                if (inputs.length < 2) {
+                    throw new IllegalArgumentException("monitor requires 1 arguments. You entered " + (inputs.length - 1));
+                }
                 MonitorClient monitorClient = new MonitorClient("localhost", 4600, 40);
                 MonitorMessage monitorMessage = new MonitorMessage(currRequestID, "REGISTER", inputs[1],
                         "", monitorClient);
 
                 messageWrapper.setMessage(monitorMessage);
                 messageWrapper.setMessageType(monitorMessage.getClass().getSimpleName());
+                break;
             case "read":
+                if (inputs.length < 4) {
+                    throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
+                }
                 RequestMessage requestMessage = new RequestMessage(currRequestID, "READ", inputs[1],
                         "", Long.parseLong(inputs[2]), Integer.parseInt(inputs[3]));
                 messageWrapper.setMessage(requestMessage);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                break;
+            default:
+                BaseMessage baseMessage = new BaseMessage(currRequestID, "BLANK", "", input);
+                messageWrapper.setMessage(baseMessage);
+                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());
         }
         return messageWrapper;
     }
@@ -75,27 +84,13 @@ public class ClientMain {
                         socket.receive(receivePacket);
                         // Process and print response
                         ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
-                        String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
+                        ReplyMessage reply = new ReplyMessage();
 
-                        if (messageType.equals(MonitorMessage.class.getSimpleName())) {
-                            MonitorMessage newMonitorMessage = new MonitorMessage();
-                            CustomSerializationUtil.unmarshal(newMonitorMessage, buffer);
+                            CustomSerializationUtil.unmarshal(reply, buffer);
                             System.out.println("Received from server: "
-                                    + "\nMessageType:" + messageType
-                                    + "\nCommand:" + newMonitorMessage.getCommandType()
-                                    + "\nContent:" + newMonitorMessage.getContent());
-                        } else if (messageType.equals(BaseMessage.class.getSimpleName())) {
-                            BaseMessage newBaseMessage = new BaseMessage();
-                            CustomSerializationUtil.unmarshal(newBaseMessage, buffer);
-                            System.out.println("Received from server: "
-                                    + "\nMessageType:" + messageType
-                                    + "\nCommand:" + newBaseMessage.getCommandType()
-                                    + "\nContent:" + newBaseMessage.getContent());
-                        }
-                        else {
-                            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                            System.out.println("Received from server:" + response);
-                        }
+                                    + "Command:" + reply.getCommandType()
+                                    + ", Content:" + reply.getContent());
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -104,7 +99,7 @@ public class ClientMain {
             receiverThread.start(); // Start the receiver thread
 
             while (true) {
-
+                MessageWrapper messageWrapper = new MessageWrapper();
                 String input = reader.readLine();
 
                 if (Objects.equals(input, "help")) {
@@ -113,7 +108,13 @@ public class ClientMain {
                 }
 
                 // send byte to server
-                MessageWrapper messageWrapper = ConvertCommandToObject(requestID++, InetAddress.getLocalHost().getHostAddress(), input);
+                try {
+                    messageWrapper = ConvertCommandToObject(requestID++, InetAddress.getLocalHost().getHostAddress(), input);
+                }
+                catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage() + ", see help for more info.");
+                    continue;
+                }
 
                 byte[] sendBuffer = CustomSerializationUtil.marshal(messageWrapper);
 
