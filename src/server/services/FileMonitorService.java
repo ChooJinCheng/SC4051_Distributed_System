@@ -2,6 +2,7 @@ package server;
 
 import message.BaseMessage;
 import message.ServerRequestIDGenerator;
+import models.MessageWrapper;
 import models.MonitorClient;
 import utilities.CustomSerializationUtil;
 import utilities.FileDataExtractorUtil;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.sql.Wrapper;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
@@ -90,10 +92,10 @@ public class FileMonitorService {
                     int clientPort = client.getClientPort();
 
                     //ToDo: Update the proper message for notifying client
-                    BaseMessage baseMessage = new BaseMessage(ServerRequestIDGenerator.getNextRequestId(), "INFO",
+                    BaseMessage baseMessage = new BaseMessage(ServerRequestIDGenerator.getNextRequestId(),"CALLBACK",
                             "", new String(updatedContent), 200, "");
-                    byte[] sendBuffer = CustomSerializationUtil.marshal(baseMessage);
-
+                    MessageWrapper wrapperMessage = new MessageWrapper(baseMessage.getClass().getSimpleName(), baseMessage);
+                    byte[] sendBuffer = CustomSerializationUtil.marshal(wrapperMessage);
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
                     socket.send(sendPacket);
                 } catch (IOException | IllegalAccessException e) {
