@@ -19,13 +19,15 @@ public class ServerHandler {
         byte[] reply = new byte[0];
         ByteBuffer buffer = ByteBuffer.wrap(requestData);
         String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
-        System.out.println(messageType);
 
+        // sam: this part can refactor to much simpler if reply message is simple
+        // or if put monitor client as optional in requestMessage?
         if(messageType.equals(baseMessageClassName)){
             BaseMessage baseMessage = new BaseMessage();
             CustomSerializationUtil.unmarshal(baseMessage, buffer);
             processBaseMessage(baseMessage);
-            reply = CustomSerializationUtil.marshal(baseMessage);
+            ReplyMessage replyMessage = new ReplyMessage(baseMessage.getRequestID(), baseMessage.getCommandType(), baseMessage.getFilePath(), baseMessage.getContent(), 200, "SUCCCESS");
+            reply = CustomSerializationUtil.marshal(replyMessage);
         }
         else if(messageType.equals(metaMessageClassName)){
             MetaMessage metaMessage = new MetaMessage();
