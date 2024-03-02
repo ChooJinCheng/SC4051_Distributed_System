@@ -6,7 +6,6 @@ public class BaseMessage {
     private String commandType;
     private String filePath;
     /*If Client request, command = insert, content = input from user
-    If Client request, command = read, content = length of byte read
     If Server reply, command = read, content = file data       */
     private String content;
 

@@ -47,7 +47,11 @@ public class CustomSerializationUtil {
         // Implement custom logic for marshalling different types
         if (value instanceof Integer) {
             return ByteBuffer.allocate(Integer.BYTES).putInt((Integer) value).array();
-        } else if (value instanceof String) {
+        }
+        else if (value instanceof Long) {
+            return ByteBuffer.allocate(Long.BYTES).putLong((Long) value).array();
+        }
+        else if (value instanceof String) {
             byte[] stringBytes = ((String) value).getBytes();
             byte[] lengthBytes = ByteBuffer.allocate(Integer.BYTES).putInt(stringBytes.length).array();
             List<byte[]> contentBytes = Arrays.asList(lengthBytes, stringBytes);
@@ -67,7 +71,11 @@ public class CustomSerializationUtil {
             byte[] stringBytes = new byte[length];
             buffer.get(stringBytes);
             return new String(stringBytes);
-        }else if (fieldType == Metadata.class) {
+        }
+        else if (fieldType == Long.class) {
+            return buffer.getLong();
+        }
+        else if (fieldType == Metadata.class) {
             Metadata newMetadata = new Metadata();
             unmarshalObject(newMetadata, buffer);
             return newMetadata;
