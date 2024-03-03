@@ -7,6 +7,7 @@ import models.MessageWrapper;
 import models.MonitorClient;
 
 import java.lang.module.FindException;
+import java.net.InetAddress;
 import java.util.Objects;
 
 public class ClientCommandHandler {
@@ -29,15 +30,18 @@ public class ClientCommandHandler {
         System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
         System.out.println("update <filepath> -- updates a section of a file offset by bytes");
         System.out.println("copy <filepath> -- copies a file to a new file");
+        System.out.println("exit -- exit system");
         System.out.println("============");
     }
 
-    public MessageWrapper ConvertCommandToObject(int currRequestID, String ipAddress, String input) {
+    public MessageWrapper ConvertCommandToObject(int currRequestID, String input) throws Exception {
         MessageWrapper messageWrapper = new MessageWrapper();
 
         String[] inputs = input.split(" ");
         String command = inputs[0];
-        String requestID = ipAddress + "/" + currRequestID; // once server side ID change to string, change to this
+//         once server side ID change to string, change to this
+//         String ipAddress = InetAddress.getLocalHost().getHostAddress();
+//        String requestID = ipAddress + "/" + currRequestID;
         switch (command) {
             case "monitor":
                 if (inputs.length < 3) {
@@ -71,6 +75,17 @@ public class ClientCommandHandler {
                 messageWrapper.setMessage(requestMessage);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 break;
+            case "getattr":
+                if (inputs.length < 2) {
+                    throw new IllegalArgumentException("getattr requires 1 arguments. You entered " + (inputs.length - 1));
+                }
+                requestMessage = new RequestMessage(currRequestID, "GETATTR", inputs[1], "");
+                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                messageWrapper.setMessage(requestMessage);
+                break;
+
+            case "exit":
+                System.exit(0);
             default:
                 BaseMessage baseMessage = new BaseMessage(currRequestID, "BLANK", "", input);
                 messageWrapper.setMessage(baseMessage);

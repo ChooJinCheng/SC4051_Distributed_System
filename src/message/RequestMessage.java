@@ -5,6 +5,10 @@ public class RequestMessage extends BaseMessage {
     private int readLength;
 
     public RequestMessage() {}
+    public RequestMessage(int requestID, String commandType, String filePath, String content) {
+        super(requestID, commandType, filePath, content);
+    }
+
     public RequestMessage(int requestID, String commandType, String filePath, String content, long offset, int readLength) {
         super(requestID, commandType, filePath, content);
         this.offset = offset;

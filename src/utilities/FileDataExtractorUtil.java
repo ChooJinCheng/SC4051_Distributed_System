@@ -19,6 +19,11 @@ public class FileDataExtractorUtil {
         BasicFileAttributes basicFileAttributes = getMetadataFromFile(fullFilePath);
         return basicFileAttributes.lastModifiedTime();
     }
+    // make it easier for client side to do time manipulation (unix seconds)
+    public static long getLastModifiedTimeInUnix(String fullFilePath) {
+        BasicFileAttributes basicFileAttributes = getMetadataFromFile(fullFilePath);
+        return basicFileAttributes.lastModifiedTime().toInstant().getEpochSecond();
+    }
 
     public static byte[] getContentFromFile(String fullFilePath) {
         FileAttributesVisitor visitor = getFileAttributeVisitor(fullFilePath);

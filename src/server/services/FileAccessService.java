@@ -30,6 +30,7 @@ public class FileAccessService {
         }
         return fileAccessService;
     }
+
     public String readFileContent(String inputFilePath, long inputOffset, int inputReadLength) {
         try {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
@@ -49,7 +50,7 @@ public class FileAccessService {
                 byte[] contentBytes = new byte[inputReadLength];
                 int bytesRead = randomAccessFile.read(contentBytes);
                 String content = new String(contentBytes, 0, bytesRead);
-                return "200 ".concat(content);
+                return "200".concat(content);
             }
         } catch (IOException e) {
             return "500 Error: " + e.getMessage();
