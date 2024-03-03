@@ -7,6 +7,7 @@ import utilities.CustomSerializationUtil;
 import utilities.MessageUtil;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public class ServerHandler {
     private boolean atLeastOnce;
@@ -18,13 +19,16 @@ public class ServerHandler {
         ByteBuffer buffer = ByteBuffer.wrap(requestData);
         String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
 
-        // sam: this part can refactor to much simpler if reply message is simple
-        // or if put monitor client as optional in requestMessage?
         if(messageType.equals(requestMessageClassName)){
             RequestMessage requestMessage = new RequestMessage();
             CustomSerializationUtil.unmarshal(requestMessage, buffer);
             int statusCode = processRequestMessage(requestMessage);
-            ReplyMessage replyMessage = new ReplyMessage(requestMessage.getRequestID(), requestMessage.getCommandType(), requestMessage.getFilePath(), requestMessage.getContent(), 200, "SUCCESS");
+
+            String content = Objects.equals(requestMessage.getCommandType(), "READ") ?
+                    requestMessage.getContent() + "," + requestMessage.getOffset() + "," + requestMessage.getReadLength()
+                    : requestMessage.getContent();
+
+            ReplyMessage replyMessage = new ReplyMessage(requestMessage.getRequestID(), requestMessage.getCommandType(), requestMessage.getFilePath(), content, 200, "SUCCESS");
             MessageUtil.setReplyStatusCode(statusCode, replyMessage);
             reply = CustomSerializationUtil.marshal(replyMessage);
         }

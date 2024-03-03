@@ -18,55 +18,11 @@ public class ClientMain {
     //Init Client Param
     public static final Properties properties = PropertyUtil.getProperty();
 
-    public static void HelpCommand() {
-        System.out.println("COMMANDS");
-        System.out.println("============");
-        System.out.println("help");
-        System.out.println("monitor <filepath> <duration> -- monitors a certain file for updates");
-        System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
-        System.out.println("update <filepath> -- updates a section of a file offset by bytes");
-        System.out.println("copy <filepath> -- copies a file to a new file");
-        System.out.println("============");
-    }
-
-    public static MessageWrapper ConvertCommandToObject(int currRequestID, String ipAddress, String input) {
-        MessageWrapper messageWrapper = new MessageWrapper();
-
-        String[] inputs = input.split(" ");
-        String command = inputs[0];
-        String requestID = ipAddress + "/" + currRequestID; // once server side ID change to string, change to this
-        switch (command) {
-            case "monitor":
-                if (inputs.length < 3) {
-                    throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
-                }
-                MonitorClient monitorClient = new MonitorClient("localhost", 4600, Integer.parseInt(inputs[2]));
-                MonitorMessage monitorMessage = new MonitorMessage(currRequestID, "REGISTER", inputs[1],
-                        "", monitorClient);
-
-                messageWrapper.setMessage(monitorMessage);
-                messageWrapper.setMessageType(monitorMessage.getClass().getSimpleName());
-                break;
-            case "read":
-                if (inputs.length < 4) {
-                    throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
-                }
-                RequestMessage requestMessage = new RequestMessage(currRequestID, "READ", inputs[1],
-                        "", Long.parseLong(inputs[2]), Integer.parseInt(inputs[3]));
-                messageWrapper.setMessage(requestMessage);
-                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
-                break;
-            default:
-                BaseMessage baseMessage = new BaseMessage(currRequestID, "BLANK", "", input);
-                messageWrapper.setMessage(baseMessage);
-                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());
-        }
-        return messageWrapper;
-    }
-
-
-
     public static void main(String[] args) {
+        // init handlers
+        ClientCommandHandler clientCommandHandler = ClientCommandHandler.getInstance();
+        ClientCacheHandler clientCacheHandler = ClientCacheHandler.getInstance();
+
         int requestID = 1;
         System.out.println("Type help to see all available commands");
         try {
@@ -92,6 +48,12 @@ public class ClientMain {
                                     + ", StatusCode:" + reply.getStatusCode()
                                     + ", StatusMessage:" + reply.getStatusMessage()
                                     + "\nContent:" + reply.getContent());
+
+                            if (Objects.equals(reply.getCommandType(), "READ")) {
+                                // read the content, store in cache if cannot find
+                                String[] data = reply.getContent().split(","); // should return fileContent,offset,length
+                                clientCacheHandler.cacheIfAbsent(reply.getFilePath(), Long.parseLong(data[1]), new ClientCacheData(Integer.parseInt(data[2]), data[0]));
+                            }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -104,13 +66,14 @@ public class ClientMain {
                 String input = reader.readLine();
 
                 if (Objects.equals(input, "help")) {
-                    HelpCommand();
+                    clientCommandHandler.HelpCommand();
                     continue;
                 }
 
                 // send byte to server
                 try {
-                    messageWrapper = ConvertCommandToObject(requestID++, InetAddress.getLocalHost().getHostAddress(), input);
+                    messageWrapper = clientCommandHandler.ConvertCommandToObject(requestID++, InetAddress.getLocalHost().getHostAddress(), input);
+                    if (messageWrapper == null) continue;
                 }
                 catch (IllegalArgumentException e) {
                     System.out.println("ERROR: " + e.getMessage() + ", see help for more info.");

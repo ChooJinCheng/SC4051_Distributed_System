@@ -9,7 +9,7 @@ public class MessageUtil {
     public static int setMessageAndGetStatusCode(String reply, BaseMessage requestMessage){
         int statusCode = Integer.parseInt(reply.substring(0,3));
         requestMessage.setContent(reply.substring(3));
-        requestMessage.setCommandType("ACK");
+//        requestMessage.setCommandType("ACK");
 
         return statusCode;
     }
