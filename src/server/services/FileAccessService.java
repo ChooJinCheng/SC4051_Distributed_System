@@ -1,12 +1,11 @@
 package server.services;
 
+import message.RequestMessage;
 import utilities.FilePathUtil;
-import utilities.PropertyUtil;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.*;
-import java.util.Properties;
 
 /*
  * Reference: https://docs.oracle.com/javase/8/docs/api/java/io/RandomAccessFile.html
@@ -36,12 +35,12 @@ public class FileAccessService {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
             if (!Files.exists(filePath)) {
-                return "Error: File does not exist.";
+                return "404 Error: File does not exist.";
             }
 
             long fileSize = Files.size(filePath);
             if (inputOffset >= fileSize) {
-                return "Error: Offset exceeds file length.";
+                return "400 Error: Offset exceeds file length.";
             }
 
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "r")) {
@@ -49,11 +48,11 @@ public class FileAccessService {
 
                 byte[] contentBytes = new byte[inputReadLength];
                 int bytesRead = randomAccessFile.read(contentBytes);
-
-                return new String(contentBytes, 0, bytesRead);
+                String content = new String(contentBytes, 0, bytesRead);
+                return "200 ".concat(content);
             }
         } catch (IOException e) {
-            return "Error: " + e.getMessage();
+            return "500 Error: " + e.getMessage();
         }
     }
 
@@ -62,12 +61,12 @@ public class FileAccessService {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
             if (!Files.exists(filePath)) {
-                return "Error: File does not exist.";
+                return "404 Error: File does not exist.";
             }
 
             long fileSize = Files.size(filePath);
             if (inputOffset > fileSize) {
-                return "Error: Offset exceeds file length.";
+                return "400 Error: Offset exceeds file length.";
             }
 
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "rw")) {
@@ -79,10 +78,10 @@ public class FileAccessService {
                 randomAccessFile.write(content.getBytes());
                 randomAccessFile.write(originalContent);
 
-                return "Insertion successful.";
+                return "200 Insertion successful.";
             }
         } catch (IOException e) {
-            return "Error: " + e.getMessage();
+            return "500 Error: " + e.getMessage();
         }
     }
 }

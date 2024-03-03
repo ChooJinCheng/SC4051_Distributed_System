@@ -72,7 +72,7 @@ public class CustomSerializationUtil {
             buffer.get(stringBytes);
             return new String(stringBytes);
         }
-        else if (fieldType == Long.class) {
+        else if (fieldType == long.class || fieldType == Long.class) {
             return buffer.getLong();
         }
         else if (fieldType == Metadata.class) {

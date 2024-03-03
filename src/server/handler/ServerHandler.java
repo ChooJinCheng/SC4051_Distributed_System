@@ -1,18 +1,16 @@
 package server.handler;
 
-import message.BaseMessage;
-import message.MetaMessage;
-import message.MonitorMessage;
-import message.ReplyMessage;
+import message.*;
 import server.services.FileAccessService;
 import server.services.FileMonitorService;
 import utilities.CustomSerializationUtil;
+import utilities.MessageUtil;
 
 import java.nio.ByteBuffer;
 
 public class ServerHandler {
     private boolean atLeastOnce;
-    private final String baseMessageClassName = BaseMessage.class.getSimpleName();
+    private final String requestMessageClassName = RequestMessage.class.getSimpleName();
     private final String metaMessageClassName = MetaMessage.class.getSimpleName();
     private final String monitorMessageClassName = MonitorMessage.class.getSimpleName();
     public byte[] processRequestAndGetReply(byte[] requestData) throws IllegalAccessException {
@@ -22,11 +20,12 @@ public class ServerHandler {
 
         // sam: this part can refactor to much simpler if reply message is simple
         // or if put monitor client as optional in requestMessage?
-        if(messageType.equals(baseMessageClassName)){
-            BaseMessage baseMessage = new BaseMessage();
-            CustomSerializationUtil.unmarshal(baseMessage, buffer);
-            processBaseMessage(baseMessage);
-            ReplyMessage replyMessage = new ReplyMessage(baseMessage.getRequestID(), baseMessage.getCommandType(), baseMessage.getFilePath(), baseMessage.getContent(), 200, "SUCCCESS");
+        if(messageType.equals(requestMessageClassName)){
+            RequestMessage requestMessage = new RequestMessage();
+            CustomSerializationUtil.unmarshal(requestMessage, buffer);
+            int statusCode = processRequestMessage(requestMessage);
+            ReplyMessage replyMessage = new ReplyMessage(requestMessage.getRequestID(), requestMessage.getCommandType(), requestMessage.getFilePath(), requestMessage.getContent(), 200, "SUCCESS");
+            MessageUtil.setReplyStatusCode(statusCode, replyMessage);
             reply = CustomSerializationUtil.marshal(replyMessage);
         }
         else if(messageType.equals(metaMessageClassName)){
@@ -38,8 +37,9 @@ public class ServerHandler {
         else if(messageType.equals(monitorMessageClassName)){
             MonitorMessage monitorMessage = new MonitorMessage();
             CustomSerializationUtil.unmarshal(monitorMessage, buffer);
-            processMonitorMessage(monitorMessage);
-            ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getRequestID(), monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent(), 200, "SUCCCESS");
+            int statusCode = processMonitorMessage(monitorMessage);
+            ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getRequestID(), monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent(), 200, "SUCCESS");
+            MessageUtil.setReplyStatusCode(statusCode, replyMessage);
             reply = CustomSerializationUtil.marshal(replyMessage);
         }else{
             //ToDo: Throw error/exception
@@ -47,22 +47,41 @@ public class ServerHandler {
         return reply;
     }
 
-    private void processBaseMessage(BaseMessage baseMessage){
+    private int processRequestMessage(RequestMessage requestMessage){
+        FileAccessService fileAccessService = FileAccessService.getInstance();
+        String commandType = requestMessage.getCommandType();
+        int statusCode = 200;
 
+        if (commandType.equals("READ")) {
+            String filePath = requestMessage.getFilePath();
+            long inputOffset = requestMessage.getOffset();
+            int inputReadLength = requestMessage.getReadLength();
+            String reply = fileAccessService.readFileContent(filePath, inputOffset, inputReadLength);
+            statusCode = MessageUtil.setMessageAndGetStatusCode(reply, requestMessage);
+        }
+        else if(commandType.equals("INSERT")){
+            String filePath = requestMessage.getFilePath();
+            long inputOffset = requestMessage.getOffset();
+            String inputContent = requestMessage.getContent();
+            String reply = fileAccessService.insertIntoFile(filePath, inputOffset, inputContent);
+            statusCode = MessageUtil.setMessageAndGetStatusCode(reply, requestMessage);
+        }
+        return statusCode;
     }
 
     private void processMetaMessage(MetaMessage metaMessage){
 
     }
 
-    private void processMonitorMessage(MonitorMessage monitorMessage){
+    private int processMonitorMessage(MonitorMessage monitorMessage){
         FileMonitorService fileMonitorService = FileMonitorService.getInstance();
         String commandType = monitorMessage.getCommandType();
+        int statusCode = 200;
 
         if (commandType.equals("REGISTER")) {
             String reply = fileMonitorService.registerClient(monitorMessage.getFilePath(), monitorMessage.getMonitorClient());
-            monitorMessage.setContent(reply);
-            monitorMessage.setCommandType("ACK");
+            statusCode = MessageUtil.setMessageAndGetStatusCode(reply, monitorMessage);
         }
+        return statusCode;
     }
 }

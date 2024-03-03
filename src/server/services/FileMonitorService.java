@@ -37,14 +37,14 @@ public class FileMonitorService {
         }
         return fileMonitorService;
     }
-    //ToDo: Change return String error to throw error instead
+    //ToDo: Need to check race condition issue again when same client fire multiple duplicate operation
     public String registerClient(String inputFilePath, MonitorClient monitorClient) {
         String fullFilePath = FilePathUtil.getFullPathString(inputFilePath);
         ReentrantLock lock = getFilePathLock(fullFilePath);
         lock.lock();
         try {
             if(!doesFilePathExist(fullFilePath))
-                return "Error: File does not exist.";
+                return "404 Error: File does not exist.";
             registeredClients.computeIfAbsent(fullFilePath, k -> new ArrayList<>()).add(monitorClient);
 
             if (!runningThreads.containsKey(fullFilePath) || !runningThreads.get(fullFilePath).get()) {
@@ -53,7 +53,7 @@ public class FileMonitorService {
         } finally {
             lock.unlock();
         }
-        return "Registration Successful";
+        return "200 Registration Successful";
     }
 
     private void startMonitoringThread(String fullFilePath) {

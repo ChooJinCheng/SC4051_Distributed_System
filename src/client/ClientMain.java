@@ -22,7 +22,7 @@ public class ClientMain {
         System.out.println("COMMANDS");
         System.out.println("============");
         System.out.println("help");
-        System.out.println("monitor <filepath> -- monitors a certain file for updates");
+        System.out.println("monitor <filepath> <duration> -- monitors a certain file for updates");
         System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
         System.out.println("update <filepath> -- updates a section of a file offset by bytes");
         System.out.println("copy <filepath> -- copies a file to a new file");
@@ -37,10 +37,10 @@ public class ClientMain {
         String requestID = ipAddress + "/" + currRequestID; // once server side ID change to string, change to this
         switch (command) {
             case "monitor":
-                if (inputs.length < 2) {
-                    throw new IllegalArgumentException("monitor requires 1 arguments. You entered " + (inputs.length - 1));
+                if (inputs.length < 3) {
+                    throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
                 }
-                MonitorClient monitorClient = new MonitorClient("localhost", 4600, 40);
+                MonitorClient monitorClient = new MonitorClient("localhost", 4600, Integer.parseInt(inputs[2]));
                 MonitorMessage monitorMessage = new MonitorMessage(currRequestID, "REGISTER", inputs[1],
                         "", monitorClient);
 
@@ -89,7 +89,9 @@ public class ClientMain {
                             CustomSerializationUtil.unmarshal(reply, buffer);
                             System.out.println("Received from server: "
                                     + "Command:" + reply.getCommandType()
-                                    + ", Content:" + reply.getContent());
+                                    + ", StatusCode:" + reply.getStatusCode()
+                                    + ", StatusMessage:" + reply.getStatusMessage()
+                                    + "\nContent:" + reply.getContent());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
