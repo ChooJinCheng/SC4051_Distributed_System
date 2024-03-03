@@ -66,7 +66,7 @@ public class ClientCommandHandler {
                 var message = ClientCacheHandler.getInstance().checkCache(filePath, offset, length);
 
                 if (message != null) {
-                    System.out.println(message); // retrieve message from cache
+                    System.out.println("RETRIEVED FROM CACHE: " + message); // retrieve message from cache
                     return null; // do not send command to server
                 }
 

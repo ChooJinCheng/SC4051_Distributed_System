@@ -39,7 +39,6 @@ public class ClientCacheHandler {
                 // cache hit
                 // check whether smelly
                 if (checkSmelly(filePath, cacheData)) {
-                    System.out.println("SMELLY");
                     return null;
                 }
 
@@ -52,14 +51,13 @@ public class ClientCacheHandler {
     private boolean checkSmelly(String filePath, ClientCacheData data) {
         long currentTime = Instant.now().getEpochSecond();
         try {
-            if (currentTime - data.clientLastValidated > freshnessInterval) {
+            if (currentTime - data.clientLastValidated >= freshnessInterval) {
                 // invalid entry
                 long serverModifiedTime = getServerModifiedTimeForFile(filePath);
                 if (serverModifiedTime == data.serverLastModifiedTimeInUnix) {
                     // if file not modified in server, update clientLastValidated to now
                     data.clientLastValidated = Instant.now().getEpochSecond();
-                }
-                else {
+                } else {
                     // file modified in server
                     return true;
                 }

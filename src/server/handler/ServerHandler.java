@@ -26,11 +26,12 @@ public class ServerHandler {
             CustomSerializationUtil.unmarshal(requestMessage, buffer);
             int statusCode = processRequestMessage(requestMessage);
 
-            String content = Objects.equals(requestMessage.getCommandType(), "READ") ?
+            String replyContent = Objects.equals(requestMessage.getCommandType(), "READ") ?
                     requestMessage.getContent() + "," + requestMessage.getOffset() + "," + requestMessage.getReadLength() + "," + FileDataExtractorUtil.getLastModifiedTimeInUnix(requestMessage.getFilePath())
                     : requestMessage.getContent();
 
-            ReplyMessage replyMessage = new ReplyMessage(requestMessage.getRequestID(), requestMessage.getCommandType(), requestMessage.getFilePath(), content, 200, "SUCCESS");
+            ReplyMessage replyMessage = new ReplyMessage(requestMessage.getRequestID(),
+                    requestMessage.getCommandType(), requestMessage.getFilePath(), replyContent);
             MessageUtil.setReplyStatusCode(statusCode, replyMessage);
             System.out.println(replyMessage.getCommandType());
             reply = CustomSerializationUtil.marshal(replyMessage);
@@ -43,7 +44,7 @@ public class ServerHandler {
             MonitorMessage monitorMessage = new MonitorMessage();
             CustomSerializationUtil.unmarshal(monitorMessage, buffer);
             int statusCode = processMonitorMessage(monitorMessage);
-            ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getRequestID(), monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent(), 200, "SUCCESS");
+            ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getRequestID(), monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent());
             MessageUtil.setReplyStatusCode(statusCode, replyMessage);
             reply = CustomSerializationUtil.marshal(replyMessage);
         } else {
@@ -73,9 +74,7 @@ public class ServerHandler {
             case "GETATTR":
                 // can modify this part to return entire file attributes if needed, using FileDataExtractor.getMetadataFromFile
                 String lastModifiedDate = Long.toString(FileDataExtractorUtil.getLastModifiedTimeInUnix(filePath));
-
                 reply = "200".concat(lastModifiedDate);
-                System.out.println(reply);
         }
 
         statusCode = MessageUtil.setMessageAndGetStatusCode(reply, requestMessage);
