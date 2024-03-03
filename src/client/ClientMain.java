@@ -1,115 +1,128 @@
 package client;
 
-import message.BaseMessage;
-import message.MetaMessage;
-import message.MonitorMessage;
+import message.*;
 import models.MessageWrapper;
 import models.Metadata;
 import models.MonitorClient;
 import utilities.CustomSerializationUtil;
 import utilities.PropertyUtil;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.Properties;
 
 public class ClientMain {
     //Init Client Param
     public static final Properties properties = PropertyUtil.getProperty();
+
+    public static void HelpCommand() {
+        System.out.println("COMMANDS");
+        System.out.println("============");
+        System.out.println("help");
+        System.out.println("monitor <filepath> -- monitors a certain file for updates");
+        System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
+        System.out.println("update <filepath> -- updates a section of a file offset by bytes");
+        System.out.println("copy <filepath> -- copies a file to a new file");
+        System.out.println("============");
+    }
+
+    public static MessageWrapper ConvertCommandToObject(int currRequestID, String ipAddress, String input) {
+        MessageWrapper messageWrapper = new MessageWrapper();
+
+        String[] inputs = input.split(" ");
+        String command = inputs[0];
+        String requestID = ipAddress + "/" + currRequestID; // once server side ID change to string, change to this
+        switch (command) {
+            case "monitor":
+                if (inputs.length < 2) {
+                    throw new IllegalArgumentException("monitor requires 1 arguments. You entered " + (inputs.length - 1));
+                }
+                MonitorClient monitorClient = new MonitorClient("localhost", 4600, 40);
+                MonitorMessage monitorMessage = new MonitorMessage(currRequestID, "REGISTER", inputs[1],
+                        "", monitorClient);
+
+                messageWrapper.setMessage(monitorMessage);
+                messageWrapper.setMessageType(monitorMessage.getClass().getSimpleName());
+                break;
+            case "read":
+                if (inputs.length < 4) {
+                    throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
+                }
+                RequestMessage requestMessage = new RequestMessage(currRequestID, "READ", inputs[1],
+                        "", Long.parseLong(inputs[2]), Integer.parseInt(inputs[3]));
+                messageWrapper.setMessage(requestMessage);
+                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                break;
+            default:
+                BaseMessage baseMessage = new BaseMessage(currRequestID, "BLANK", "", input);
+                messageWrapper.setMessage(baseMessage);
+                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());
+        }
+        return messageWrapper;
+    }
+
+
+
     public static void main(String[] args) {
-        /*Metadata metadata = new Metadata();
-        metadata.setFileLocation("fileLoc");
-        metadata.setModifiedDate("modDate");
-
-        MetaMessage metaMessage = new MetaMessage();
-        metaMessage.setCommandType("READ");
-        metaMessage.setFilePath("C://blah");
-        metaMessage.setStatusCode(200);
-        metaMessage.setErrorMessage("test");
-        metaMessage.setContent("");
-        metaMessage.setMetadata(metadata);
-
-        try (DatagramSocket socket = new DatagramSocket(4600)) {
-
-            MessageWrapper messageWrapper = new MessageWrapper(metaMessage.getClass().getSimpleName(), metaMessage);
-            byte[] sendBuffer = CustomSerializationUtil.marshal(messageWrapper);
+        int requestID = 1;
+        System.out.println("Type help to see all available commands");
+        try {
+            DatagramSocket socket = new DatagramSocket(4600);
             InetAddress serverAddress = InetAddress.getByName(properties.getProperty("SERVER_HOSTNAME"));
             int serverPort = Integer.parseInt(properties.getProperty("SERVER_PORT"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-            DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, serverAddress, serverPort);
-            socket.send(sendPacket);
+            // Start a separate thread for receiving messages from the server
+            Thread receiverThread = new Thread(() -> {
+                try {
+                    while (true) {
+                        byte[] receiveData = new byte[1024]; // Adjust buffer size as needed
+                        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                        socket.receive(receivePacket);
+                        // Process and print response
+                        ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
+                        ReplyMessage reply = new ReplyMessage();
 
-            byte[] receiveBuffer = new byte[1024];
-            DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-            socket.receive(receivePacket);
-
-            String echoedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("Received from server: " + echoedMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-
-
-        MonitorClient monitorClient = new MonitorClient();
-        monitorClient.setClientAddress("localhost");
-        monitorClient.setClientPort(4600);
-        monitorClient.setMonitorInterval(40);
-
-        MonitorMessage monitorMessage = new MonitorMessage();
-        monitorMessage.setMonitorClient(monitorClient);
-        monitorMessage.setContent("");
-        monitorMessage.setCommandType("REGISTER");
-        monitorMessage.setFilePath("fileA\\test.txt");
-        monitorMessage.setRequestID(1);
-        try (DatagramSocket socket1 = new DatagramSocket(4600); DatagramSocket socket2 = new DatagramSocket(4601)){
-            System.out.println("Client1 is listening on port " + 4600);
-            System.out.println("Client2 is listening on port " + 4601);
-
-            MessageWrapper messageWrapper = new MessageWrapper(monitorMessage.getClass().getSimpleName(), monitorMessage);
-            byte[] sendBuffer = CustomSerializationUtil.marshal(messageWrapper);
-            InetAddress serverAddress = InetAddress.getByName(properties.getProperty("SERVER_HOSTNAME"));
-            int serverPort = Integer.parseInt(properties.getProperty("SERVER_PORT"));
-
-            DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, serverAddress, serverPort);
-            socket1.send(sendPacket);
-            while(true){
-                byte[] receiveBuffer1 = new byte[1024];
-                DatagramPacket receivePacket1 = new DatagramPacket(receiveBuffer1, receiveBuffer1.length);
-                socket1.receive(receivePacket1);
-
-
-                ByteBuffer buffer = ByteBuffer.wrap(receivePacket1.getData());
-                String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
-                if(messageType.equals(MonitorMessage.class.getSimpleName())){
-                    MonitorMessage newMonitorMessage = new MonitorMessage();
-                    CustomSerializationUtil.unmarshal(newMonitorMessage, buffer);
-                    System.out.println("Received from socket1: "
-                            + "\nMessageType:" + messageType
-                            + "\nCommand:" + newMonitorMessage.getCommandType()
-                            + "\nContent:" + newMonitorMessage.getContent());
+                            CustomSerializationUtil.unmarshal(reply, buffer);
+                            System.out.println("Received from server: "
+                                    + "Command:" + reply.getCommandType()
+                                    + ", Content:" + reply.getContent());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                else if(messageType.equals(BaseMessage.class.getSimpleName())){
-                    BaseMessage newBaseMessage = new BaseMessage();
-                    CustomSerializationUtil.unmarshal(newBaseMessage, buffer);
-                    System.out.println("Received from socket1: "
-                            + "\nMessageType:" + messageType
-                            + "\nCommand:" + newBaseMessage.getCommandType()
-                            + "\nContent:" + newBaseMessage.getContent());
+            });
+            receiverThread.start(); // Start the receiver thread
+
+            while (true) {
+                MessageWrapper messageWrapper = new MessageWrapper();
+                String input = reader.readLine();
+
+                if (Objects.equals(input, "help")) {
+                    HelpCommand();
+                    continue;
                 }
 
+                // send byte to server
+                try {
+                    messageWrapper = ConvertCommandToObject(requestID++, InetAddress.getLocalHost().getHostAddress(), input);
+                }
+                catch (IllegalArgumentException e) {
+                    System.out.println("ERROR: " + e.getMessage() + ", see help for more info.");
+                    continue;
+                }
 
-                /*byte[] receiveBuffer2 = new byte[1024];
-                DatagramPacket receivePacket2 = new DatagramPacket(receiveBuffer2, receiveBuffer2.length);
-                socket2.receive(receivePacket2);
+                byte[] sendBuffer = CustomSerializationUtil.marshal(messageWrapper);
 
-                BaseMessage baseMessage2 = new BaseMessage();
-                CustomSerializationUtil.unmarshal(baseMessage2, receivePacket2.getData());
-                System.out.println("Received from socket2: "
-                        + "\nContent:" + baseMessage2.getContent()
-                        + "\nID:" + baseMessage2.getRequestID());*/
+                DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, serverAddress, serverPort);
+                socket.send(sendPacket);
             }
-            
-        } catch (Exception e) {
+
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }

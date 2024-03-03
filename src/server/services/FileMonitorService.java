@@ -1,6 +1,7 @@
 package server.services;
 
 import message.BaseMessage;
+import message.ReplyMessage;
 import server.ServerRequestIDGenerator;
 import models.MessageWrapper;
 import models.MonitorClient;
@@ -98,11 +99,10 @@ public class FileMonitorService {
                     InetAddress clientAddress = InetAddress.getByName(client.getClientAddress());
                     int clientPort = client.getClientPort();
 
-                    //ToDo: Update the proper message for notifying client
-                    BaseMessage baseMessage = new BaseMessage(ServerRequestIDGenerator.getNextRequestId(),"CALLBACK",
-                            "", new String(updatedContent));
-                    MessageWrapper wrapperMessage = new MessageWrapper(baseMessage.getClass().getSimpleName(), baseMessage);
-                    byte[] sendBuffer = CustomSerializationUtil.marshal(wrapperMessage);
+                    ReplyMessage replyMessage = new ReplyMessage(ServerRequestIDGenerator.getNextRequestId(),"CALLBACK",
+                            "", new String(updatedContent), 200, "Success");
+//                    MessageWrapper wrapperMessage = new MessageWrapper(replyMessage.getClass().getSimpleName(), replyMessage);
+                    byte[] sendBuffer = CustomSerializationUtil.marshal(replyMessage);
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
                     socket.send(sendPacket);
                 } catch (IOException | IllegalAccessException e) {
