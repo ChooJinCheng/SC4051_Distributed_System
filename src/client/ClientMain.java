@@ -58,11 +58,9 @@ public class ClientMain {
         MonitorMessage monitorMessage = new MonitorMessage();
         monitorMessage.setMonitorClient(monitorClient);
         monitorMessage.setContent("");
-        monitorMessage.setErrorMessage("");
         monitorMessage.setCommandType("REGISTER");
-        monitorMessage.setFilePath("test.txt");
+        monitorMessage.setFilePath("fileA\\test.txt");
         monitorMessage.setRequestID(1);
-        monitorMessage.setStatusCode(200);
         try (DatagramSocket socket1 = new DatagramSocket(4600); DatagramSocket socket2 = new DatagramSocket(4601)){
             System.out.println("Client1 is listening on port " + 4600);
             System.out.println("Client2 is listening on port " + 4601);
