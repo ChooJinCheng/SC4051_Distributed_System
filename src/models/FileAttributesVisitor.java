@@ -17,9 +17,9 @@ public class FileAttributesVisitor implements FileVisitor<Path> {
     private byte[] fileContent;
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
         fileContent = Files.readAllBytes(file);
-        fileAttributes = attrs;
+        fileAttributes = attributes;
         return FileVisitResult.TERMINATE;
     }
 
@@ -29,12 +29,12 @@ public class FileAttributesVisitor implements FileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attrs) throws IOException {
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+    public FileVisitResult postVisitDirectory(Path directory, IOException exc) throws IOException {
         return FileVisitResult.CONTINUE;
     }
 

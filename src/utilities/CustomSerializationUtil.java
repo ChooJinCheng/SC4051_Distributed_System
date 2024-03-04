@@ -5,7 +5,6 @@ import models.Metadata;
 import models.MonitorClient;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -95,11 +94,6 @@ public class CustomSerializationUtil {
                 field.set(obj, value);
             }
         }
-    }
-
-    private static void skipToMessageBytes(ByteBuffer buffer){
-        int length = buffer.getInt();
-        buffer.position(buffer.position() + length);
     }
 
     private static byte[] concatenateByteArrays(List<byte[]> byteArrays) {

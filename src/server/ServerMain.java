@@ -1,13 +1,6 @@
 package server;
 
-import message.MetaMessage;
-import message.MonitorMessage;
-import models.MessageWrapper;
-import models.Metadata;
-import models.MonitorClient;
 import server.handler.ServerHandler;
-import utilities.CustomSerializationUtil;
-import utilities.FileDataExtractorUtil;
 import utilities.PropertyUtil;
 
 import java.io.BufferedReader;
@@ -46,7 +39,6 @@ public class ServerMain {
                 DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
                 socket.send(sendPacket);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }

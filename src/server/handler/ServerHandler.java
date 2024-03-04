@@ -1,8 +1,8 @@
 package server.handler;
 
 import message.*;
+import models.AMORequestHistoryEntry;
 import models.MessageWrapper;
-import server.ServerMain;
 import server.services.FileAccessService;
 import server.services.FileMonitorService;
 import utilities.CustomSerializationUtil;
@@ -13,16 +13,21 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ServerHandler {
-    private boolean atLeastOnce;
-    private Map<String, byte[]> processedRequests = new HashMap<>();
+    private final boolean atLeastOnce;
+    private final Map<String, AMORequestHistoryEntry> processedRequests = new HashMap<>();
     private final String requestMessageClassName = RequestMessage.class.getSimpleName();
     private final String replyMessageClassName = ReplyMessage.class.getSimpleName();
     private final String monitorMessageClassName = MonitorMessage.class.getSimpleName();
 
     public ServerHandler(boolean atLeastOnce) {
         this.atLeastOnce = atLeastOnce;
+        ScheduledExecutorService cleanupScheduler = Executors.newSingleThreadScheduledExecutor();
+        cleanupScheduler.scheduleAtFixedRate(this::cleanupExpiredAMOEntries, 1, 10, TimeUnit.MINUTES);
     }
 
     public byte[] processRequestAndGetReply(byte[] requestData) throws IllegalAccessException {
@@ -30,6 +35,13 @@ public class ServerHandler {
         ByteBuffer buffer = ByteBuffer.wrap(requestData);
         String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
         String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
+
+        if(!atLeastOnce){
+            if(processedRequests.containsKey(messageID)) {
+                System.out.println("Function not executed. Duplicate Request for: " + messageID);
+                return processedRequests.get(messageID).getReplyMessage();
+            }
+        }
 
         if (messageType.equals(requestMessageClassName)) {
             RequestMessage requestMessage = new RequestMessage();
@@ -57,36 +69,34 @@ public class ServerHandler {
         } else {
             //ToDo: Throw error/exception
         }
+
+        if(!atLeastOnce){
+            processedRequests.putIfAbsent(messageID, new AMORequestHistoryEntry(reply, System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)));
+        }
+
         return reply;
     }
 
     private int processRequestMessage(RequestMessage requestMessage) {
         FileAccessService fileAccessService = FileAccessService.getInstance();
         String commandType = requestMessage.getCommandType();
-        int statusCode = 200;
+        int statusCode;
 
         String filePath = requestMessage.getFilePath();
         long inputOffset = requestMessage.getOffset();
         int inputReadLength = requestMessage.getReadLength();
         String inputContent = requestMessage.getContent();
-        String reply = "";
-
-        switch (commandType) {
-            case "READ":
-                reply = fileAccessService.readFileContent(filePath, inputOffset, inputReadLength);
-                break;
-            case "INSERT":
-                reply = fileAccessService.insertIntoFile(filePath, inputOffset, inputContent);
-                break;
-            case "GETATTR":
+        String reply = switch (commandType) {
+            case "READ" -> fileAccessService.readFileContent(filePath, inputOffset, inputReadLength);
+            case "INSERT" -> fileAccessService.insertIntoFile(filePath, inputOffset, inputContent);
+            case "GETATTR" -> {
                 // can modify this part to return entire file attributes if needed, using FileDataExtractor.getMetadataFromFile
                 String lastModifiedDate = Long.toString(FileDataExtractorUtil.getLastModifiedTimeInUnix(filePath));
-                reply = "200".concat(lastModifiedDate);
-                break;
-            case "COPY":
-                reply = fileAccessService.copyFile(filePath);
-                break;
-        }
+                yield "200".concat(lastModifiedDate);
+            }
+            case "COPY" -> fileAccessService.copyFile(filePath);
+            default -> "";
+        };
 
         statusCode = MessageUtil.setMessageAndGetStatusCode(reply, requestMessage);
 
@@ -103,5 +113,9 @@ public class ServerHandler {
             statusCode = MessageUtil.setMessageAndGetStatusCode(reply, monitorMessage);
         }
         return statusCode;
+    }
+
+    private void cleanupExpiredAMOEntries() {
+        processedRequests.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 }
