@@ -37,7 +37,8 @@ public class ClientCacheHandler {
                     return null;
                 }
                 long currentFreshness = ClientMain.freshnessInterval - (Instant.now().getEpochSecond() - cacheData.clientLastValidated);
-                return cacheData.content.substring(0, length) + ", TIME TO EXPIRE (" + currentFreshness + "s)";
+                int readLength = Math.min(cacheData.content.length(), length);
+                return cacheData.content.substring(0, readLength) + ", TIME TO EXPIRE (" + currentFreshness + "s)";
             }
         }
         return null;

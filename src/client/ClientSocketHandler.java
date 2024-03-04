@@ -145,9 +145,9 @@ public class ClientSocketHandler {
                     + "\nContent:" + reply.getContent());
 
             return reply.getContent();
+
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            ;
         }
         return null;
     }
