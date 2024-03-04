@@ -15,6 +15,10 @@ public class MessageUtil {
     }
     public static void setReplyStatusCode(int statusCode, ReplyMessage replyMessage){
         switch (statusCode){
+            case 200 -> {
+                replyMessage.setStatusCode(200);
+                replyMessage.setStatusMessage("Success");
+            }
             case 400 -> {
                 replyMessage.setStatusCode(400);
                 replyMessage.setStatusMessage("Bad Request");
