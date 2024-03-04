@@ -7,6 +7,9 @@ import message.RequestMessage;
 import models.MessageWrapper;
 import models.MonitorClient;
 
+
+import java.util.ArrayList;
+import java.util.List;
 import java.lang.module.FindException;
 import java.net.InetAddress;
 import java.util.Objects;
@@ -38,7 +41,9 @@ public class ClientCommandHandler {
     public MessageWrapper ConvertCommandToObject(int currRequestID, String input) throws Exception {
         MessageWrapper messageWrapper = new MessageWrapper();
 
-        String[] inputs = input.split(" ");
+
+//        String[] inputs = input.split(" ");
+        String[] inputs = parseArguments(input);
         String command = inputs[0];
 //         once server side ID change to string, change to this
 //         String ipAddress = InetAddress.getLocalHost().getHostAddress();
@@ -102,4 +107,36 @@ public class ClientCommandHandler {
         }
         return messageWrapper;
     }
+
+    private String[] parseArguments(String input) {
+        List<String> argsList = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (char ch : input.toCharArray()) {
+            if (ch == '\"') {
+                inQuotes = !inQuotes;
+                //skip adding " to sb
+                continue;
+            }
+
+            if (ch == ' ' && inQuotes == false) {
+                argsList.add(sb.toString());
+                //reset sb for next arg
+                sb = new StringBuilder();
+            } else {
+                sb.append(ch);
+            }
+        }
+
+        // add the last argument if any
+        if (sb.length() > 0) {
+            argsList.add(sb.toString());
+        }
+
+        // convert list into array of args
+        return argsList.toArray(new String[0]);
+    }
+
+
 }
