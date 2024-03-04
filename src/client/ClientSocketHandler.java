@@ -15,6 +15,9 @@ public class ClientSocketHandler {
     private InetAddress serverAddress;
     private int serverPort;
 
+    private int max_timeout;
+    private int timeout_duration;
+
 //    private static ClientSocketHandler clientSocketHandler = null;
 //
 //    public static synchronized ClientSocketHandler getInstance() throws Exception {
@@ -37,6 +40,9 @@ public class ClientSocketHandler {
         this.socket = new DatagramSocket(Integer.parseInt(properties.getProperty(portName)));
         this.serverAddress = InetAddress.getByName(properties.getProperty("SERVER_HOSTNAME"));
         this.serverPort = Integer.parseInt(properties.getProperty("SERVER_PORT"));
+
+        this.max_timeout = Integer.parseInt(properties.getProperty("MAX_TIMEOUTS"));
+        this.timeout_duration = Integer.parseInt(properties.getProperty("TIMEOUT_DURATION"));
     }
 
     public void startReceivingMessages() {
@@ -92,11 +98,26 @@ public class ClientSocketHandler {
 
     public String sendAndReceiveTogether(MessageWrapper message) throws Exception {
         try {
+            int timeoutTimes = 0;
             sendMessage(message);
 
             byte[] receiveData = new byte[1024]; // Adjust buffer size as needed
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            socket.receive(receivePacket);
+            socket.setSoTimeout(timeout_duration);
+
+            while (timeoutTimes < max_timeout) {
+                try {
+                    socket.receive(receivePacket);
+                    break;
+                }
+                catch (SocketTimeoutException e) {
+                    timeoutTimes++;
+                    System.err.println("RECEIVE MESSAGE TIMEOUT: " + timeoutTimes + "/" + max_timeout + ", trying again..");
+                    if (timeoutTimes == max_timeout) {
+                        throw new SocketTimeoutException("ERROR: Time out trying to receive message, try sending the command again.");
+                    }
+                }
+            }
             // Process and print response
             ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
             String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
@@ -126,7 +147,7 @@ public class ClientSocketHandler {
             return reply.getContent();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());;
         }
         return null;
     }
