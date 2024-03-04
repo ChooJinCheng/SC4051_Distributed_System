@@ -31,14 +31,17 @@ public class ClientCacheHandler {
         if (cache.containsKey(filePath)) {
             ClientCacheData cacheData = cache.get(filePath);
             // cache hit
-            if (cacheData.offset == offset && cacheData.length >= length) {
+            if (cacheData.offset <= offset && cacheData.length >= length) {
                 // check whether cache still valid
                 if (checkSmelly(filePath, cacheData)) {
                     return null;
                 }
                 long currentFreshness = ClientMain.freshnessInterval - (Instant.now().getEpochSecond() - cacheData.clientLastValidated);
                 int readLength = Math.min(cacheData.content.length(), length);
-                return cacheData.content.substring(0, readLength) + ", TIME TO EXPIRE (" + currentFreshness + "s)";
+                int startLength = (int) (offset - cacheData.offset);
+                int startLengthValue = Math.min(startLength, cacheData.content.length());
+
+                return cacheData.content.substring(startLengthValue, readLength) + ", TIME TO EXPIRE (" + currentFreshness + "s)";
             }
         }
         return null;
