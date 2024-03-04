@@ -1,8 +1,6 @@
 package message;
 
 public class BaseMessage {
-    //IPADDRESS + / + ID
-    private int requestID;
     private String commandType;
     private String filePath;
     /*If Client request, command = insert, content = input from user
@@ -14,19 +12,12 @@ public class BaseMessage {
     public BaseMessage() {
 
     }
-    public BaseMessage(int requestID, String commandType, String filePath, String content) {
-        this.requestID = requestID;
+    public BaseMessage(String commandType, String filePath, String content) {
         this.commandType = commandType;
         this.filePath = filePath;
         this.content = content;
     }
 
-    public int getRequestID() {
-        return requestID;
-    }
-    public void setRequestID(int requestID) {
-        this.requestID = requestID;
-    }
     public String getCommandType() {
         return commandType;
     }

@@ -35,7 +35,7 @@ public class CustomSerializationUtil {
         unmarshalObject(obj, buffer);
     }
 
-    public static String unmarshalMessageType(ByteBuffer buffer){
+    public static String unmarshalStringAttribute(ByteBuffer buffer){
         int length = buffer.getInt();
         byte[] stringBytes = new byte[length];
         buffer.get(stringBytes);

@@ -8,6 +8,7 @@ import models.MonitorClient;
 import utilities.CustomSerializationUtil;
 import utilities.FileDataExtractorUtil;
 import utilities.FilePathUtil;
+import utilities.PropertyUtil;
 
 import java.io.*;
 import java.net.*;
@@ -98,11 +99,14 @@ public class FileMonitorService {
                 try (DatagramSocket socket = new DatagramSocket()) {
                     InetAddress clientAddress = InetAddress.getByName(client.getClientAddress());
                     int clientPort = client.getClientPort();
+                    String serverAddress = PropertyUtil.getProperty().getProperty("SERVER_HOSTNAME");
+                    String messageID = serverAddress + "/" + ServerRequestIDGenerator.getNextRequestId();
 
-                    ReplyMessage replyMessage = new ReplyMessage(ServerRequestIDGenerator.getNextRequestId(),"CALLBACK",
+                    ReplyMessage replyMessage = new ReplyMessage("CALLBACK",
                             "", new String(updatedContent), 200, "Success");
-//                    MessageWrapper wrapperMessage = new MessageWrapper(replyMessage.getClass().getSimpleName(), replyMessage);
-                    byte[] sendBuffer = CustomSerializationUtil.marshal(replyMessage);
+                    MessageWrapper wrapperMessage = new MessageWrapper(messageID, replyMessage.getClass().getSimpleName(), replyMessage);
+
+                    byte[] sendBuffer = CustomSerializationUtil.marshal(wrapperMessage);
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
                     socket.send(sendPacket);
                 } catch (IOException | IllegalAccessException e) {

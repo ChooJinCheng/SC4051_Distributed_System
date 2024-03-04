@@ -8,13 +8,13 @@ public class ReplyMessage extends BaseMessage{
 
     }
 
-    public ReplyMessage(int requestID, String commandType, String filePath, String content) {
-        super(requestID, commandType, filePath, content);
+    public ReplyMessage(String commandType, String filePath, String content) {
+        super(commandType, filePath, content);
         this.statusCode = 100;
         this.statusMessage = "INIT";
     }
-    public ReplyMessage(int requestID, String commandType, String filePath, String content, int statusCode, String statusMessage) {
-        super(requestID, commandType, filePath, content);
+    public ReplyMessage(String commandType, String filePath, String content, int statusCode, String statusMessage) {
+        super(commandType, filePath, content);
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
     }

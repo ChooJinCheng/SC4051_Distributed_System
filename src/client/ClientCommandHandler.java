@@ -9,9 +9,6 @@ import models.MonitorClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.module.FindException;
-import java.net.InetAddress;
-import java.util.Objects;
 
 public class ClientCommandHandler {
 
@@ -37,7 +34,7 @@ public class ClientCommandHandler {
         System.out.println("============");
     }
 
-    public MessageWrapper ConvertCommandToObject(int currRequestID, String input) throws Exception {
+    public MessageWrapper ConvertCommandToObject(String currRequestID, String input) throws Exception {
         MessageWrapper messageWrapper = new MessageWrapper();
 
 
@@ -53,9 +50,10 @@ public class ClientCommandHandler {
                     throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
                 }
                 MonitorClient monitorClient = new MonitorClient("localhost", 4600, Integer.parseInt(inputs[2]));
-                MonitorMessage monitorMessage = new MonitorMessage(currRequestID, "REGISTER", inputs[1],
+                MonitorMessage monitorMessage = new MonitorMessage("REGISTER", inputs[1],
                         "", monitorClient);
 
+                messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(monitorMessage);
                 messageWrapper.setMessageType(monitorMessage.getClass().getSimpleName());
                 break;
@@ -75,8 +73,9 @@ public class ClientCommandHandler {
                     return null; // do not send command to server
                 }
 
-                RequestMessage requestMessage = new RequestMessage(currRequestID, "READ", filePath,
+                RequestMessage requestMessage = new RequestMessage("READ", filePath,
                         "", offset, length);
+                messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(requestMessage);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 break;
@@ -84,7 +83,8 @@ public class ClientCommandHandler {
                 if (inputs.length < 2) {
                     throw new IllegalArgumentException("getattr requires 1 arguments. You entered " + (inputs.length - 1));
                 }
-                requestMessage = new RequestMessage(currRequestID, "GETATTR", inputs[1], "");
+                requestMessage = new RequestMessage("GETATTR", inputs[1], "");
+                messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 messageWrapper.setMessage(requestMessage);
                 break;
@@ -93,14 +93,16 @@ public class ClientCommandHandler {
                     throw new IllegalArgumentException("copy requires 1 arguments. You entered " + (inputs.length - 1));
                 }
                 filePath = inputs[1];
-                requestMessage = new RequestMessage(currRequestID, "COPY", filePath, "");
+                requestMessage = new RequestMessage("COPY", filePath, "");
+                messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 messageWrapper.setMessage(requestMessage);
                 break;
             case "exit":
                 System.exit(0);
             default:
-                BaseMessage baseMessage = new BaseMessage(currRequestID, "BLANK", "", input);
+                BaseMessage baseMessage = new BaseMessage("BLANK", "", input);
+                messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(baseMessage);
                 messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());
         }

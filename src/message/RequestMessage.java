@@ -5,12 +5,12 @@ public class RequestMessage extends BaseMessage {
     private int readLength;
 
     public RequestMessage() {}
-    public RequestMessage(int requestID, String commandType, String filePath, String content) {
-        super(requestID, commandType, filePath, content);
+    public RequestMessage(String commandType, String filePath, String content) {
+        super(commandType, filePath, content);
     }
 
-    public RequestMessage(int requestID, String commandType, String filePath, String content, long offset, int readLength) {
-        super(requestID, commandType, filePath, content);
+    public RequestMessage(String commandType, String filePath, String content, long offset, int readLength) {
+        super(commandType, filePath, content);
         this.offset = offset;
         this.readLength = readLength;
     }

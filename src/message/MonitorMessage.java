@@ -11,9 +11,9 @@ public class MonitorMessage extends BaseMessage{
     public MonitorMessage() {
         super();
     }
-    public MonitorMessage(int requestID, String commandType, String filePath, String content,
+    public MonitorMessage(String commandType, String filePath, String content,
                           MonitorClient monitorClient) {
-        super(requestID, commandType, filePath, content);
+        super(commandType, filePath, content);
         this.monitorClient = monitorClient;
     }
 

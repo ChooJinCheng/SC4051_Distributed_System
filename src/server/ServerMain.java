@@ -10,6 +10,9 @@ import utilities.CustomSerializationUtil;
 import utilities.FileDataExtractorUtil;
 import utilities.PropertyUtil;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -22,9 +25,13 @@ public class ServerMain {
         Properties properties = PropertyUtil.getProperty();
         int port = Integer.parseInt(properties.getProperty("SERVER_PORT"));
 
-        ServerHandler serverHandler = new ServerHandler();
+        try (DatagramSocket socket = new DatagramSocket(port);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            boolean atLeastOnce = handleInvocationInput(reader);
+            String semanticMode = atLeastOnce ? "AtLeastOnce" : "AtMostOnce";
 
-        try (DatagramSocket socket = new DatagramSocket(port)) {
+            ServerHandler serverHandler = new ServerHandler(atLeastOnce);
+            System.out.println("Server is on invocation semantic " + semanticMode);
             System.out.println("Server is listening on port " + port);
 
             while (true) {
@@ -43,6 +50,19 @@ public class ServerMain {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean handleInvocationInput(BufferedReader reader) throws IOException {
+        System.out.println("Input invocation semantics (0=AMO, 1=ALO): ");
+        String input = reader.readLine();
+
+        while (!input.matches("[01]")) {
+            System.out.println("Invalid input. Please enter 0 or 1.");
+            input = reader.readLine();
+        }
+
+        // Convert input to boolean
+        return "1".equals(input);
     }
 }
 

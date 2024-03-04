@@ -5,6 +5,7 @@ import models.MessageWrapper;
 import utilities.CustomSerializationUtil;
 
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.HashMap;
@@ -70,7 +71,9 @@ public class ClientCacheHandler {
     }
 
     private long getServerModifiedTimeForFile(String filepath) throws Exception {
-        MessageWrapper messageWrapper = ClientCommandHandler.getInstance().ConvertCommandToObject(ClientMain.requestID, "getattr " + filepath);
+        String clientAddress = InetAddress.getLocalHost().getHostAddress();
+        String messageID = clientAddress + "/" + ClientMain.requestID++;
+        MessageWrapper messageWrapper = ClientCommandHandler.getInstance().ConvertCommandToObject(messageID, "getattr " + filepath);
         return Long.parseLong(cacheSocketHandler.sendAndReceiveTogether(messageWrapper));
     }
 

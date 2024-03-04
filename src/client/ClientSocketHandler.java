@@ -49,6 +49,8 @@ public class ClientSocketHandler {
                     socket.receive(receivePacket);
                     // Process and print response
                     ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
+                    String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
+                    String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
                     ReplyMessage reply = new ReplyMessage();
 
                     CustomSerializationUtil.unmarshal(reply, buffer);
@@ -58,7 +60,7 @@ public class ClientSocketHandler {
                             + ", StatusMessage:" + reply.getStatusMessage()
                             + "\nContent:" + reply.getContent());
 
-                    if (Objects.equals(reply.getCommandType(), "READ")) {
+                    if (Objects.equals(reply.getCommandType(), "READ") && reply.getStatusCode() == 200) {
                         // read the content, store in cache if cannot find
                         String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
                         ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),

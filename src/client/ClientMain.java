@@ -42,7 +42,9 @@ public class ClientMain {
 
                 // send byte to server
                 try {
-                    messageWrapper = clientCommandHandler.ConvertCommandToObject(requestID++, input);
+                    String clientAddress = InetAddress.getLocalHost().getHostAddress();
+                    String messageID = clientAddress + "/" + requestID++;
+                    messageWrapper = clientCommandHandler.ConvertCommandToObject(messageID, input);
                     if (messageWrapper == null) continue;
                 }
                 catch (IllegalArgumentException e) {

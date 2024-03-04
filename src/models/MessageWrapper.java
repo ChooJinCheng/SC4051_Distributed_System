@@ -1,16 +1,25 @@
 package models;
 
-import message.BaseMessage;
-
 public class MessageWrapper {
+    //IPADDRESS + / + ID
+    private String messageID;
     private String messageType;
     private Object message;
 
     public MessageWrapper(){}
 
-    public MessageWrapper(String messageType, Object message) {
+    public MessageWrapper(String messageID, String messageType, Object message) {
+        this.messageID = messageID;
         this.messageType = messageType;
         this.message = message;
+    }
+
+    public String getMessageID() {
+        return messageID;
+    }
+
+    public void setMessageID(String messageID) {
+        this.messageID = messageID;
     }
 
     public String getMessageType() {
