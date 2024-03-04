@@ -1,5 +1,6 @@
 package utilities;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -18,5 +19,35 @@ public class FilePathUtil {
     public static Path getPath(String inputFilePath){
         String filePathStr = getFullPathString(inputFilePath);
         return Paths.get(filePathStr);
+    }
+
+    public static String getCopyPathString(String inputFilePath) {
+        Path originalPath = getPath(inputFilePath);
+        String fileName = originalPath.getFileName().toString();
+
+        int dotIndex = fileName.lastIndexOf('.');
+        String baseName;
+        String extensionType = "";
+
+        if (dotIndex > 0) {
+            baseName = fileName.substring(0, dotIndex);
+            extensionType = fileName.substring(dotIndex); // eg .txt, .pdf
+        } else {
+            // eg .gitignore
+            baseName = fileName;
+        }
+
+        String modifiedFileName = baseName + " - Copy" + extensionType;
+        Path modifiedPath = originalPath.getParent().resolve(modifiedFileName);
+
+        // Check if the file exists and create a new name if necessary
+        int copyNumber = 1;
+        while (Files.exists(modifiedPath)) {
+            ++copyNumber;
+            modifiedFileName = baseName + " - Copy (" + copyNumber + ")" + extensionType;
+            modifiedPath = originalPath.getParent().resolve(modifiedFileName);
+        }
+
+        return modifiedPath.toString();
     }
 }

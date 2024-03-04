@@ -12,6 +12,8 @@ import java.util.Objects;
 
 public class ServerHandler {
     private boolean atLeastOnce;
+
+    private final String copyMessageClassName = CopyMessage.class.getSimpleName();
     private final String requestMessageClassName = RequestMessage.class.getSimpleName();
     private final String metaMessageClassName = MetaMessage.class.getSimpleName();
     private final String monitorMessageClassName = MonitorMessage.class.getSimpleName();
@@ -21,7 +23,16 @@ public class ServerHandler {
         ByteBuffer buffer = ByteBuffer.wrap(requestData);
         String messageType = CustomSerializationUtil.unmarshalMessageType(buffer);
 
-        if (messageType.equals(requestMessageClassName)) {
+        if(messageType.equals(copyMessageClassName)){
+            CopyMessage copyMessage = new CopyMessage();
+            CustomSerializationUtil.unmarshal(copyMessage, buffer);
+            int statusCode = processCopyMessage(copyMessage);
+            ReplyMessage replyMessage = new ReplyMessage(copyMessage.getRequestID()
+                    , copyMessage.getCommandType(), copyMessage.getFilePath(), copyMessage.getContent());
+            MessageUtil.setReplyStatusCode(statusCode, replyMessage);
+            reply = CustomSerializationUtil.marshal(replyMessage);
+
+        } else if (messageType.equals(requestMessageClassName)) {
             RequestMessage requestMessage = new RequestMessage();
             CustomSerializationUtil.unmarshal(requestMessage, buffer);
             int statusCode = processRequestMessage(requestMessage);
@@ -52,6 +63,21 @@ public class ServerHandler {
         }
         return reply;
     }
+
+    private int processCopyMessage(CopyMessage copyMessage){
+        FileAccessService fileAccessService = FileAccessService.getInstance();
+        String commandType = copyMessage.getCommandType();
+        String filePath = copyMessage.getFilePath();
+        int statusCode = 200;
+        String reply = "";
+
+        reply = fileAccessService.copyFile(filePath);
+        statusCode = MessageUtil.setMessageAndGetStatusCode(reply, copyMessage);
+
+        return statusCode;
+    }
+
+
 
     private int processRequestMessage(RequestMessage requestMessage) {
         FileAccessService fileAccessService = FileAccessService.getInstance();

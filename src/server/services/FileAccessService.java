@@ -85,4 +85,28 @@ public class FileAccessService {
             return "500 Error: " + e.getMessage();
         }
     }
+
+    public String copyFile(String inputFilePath){
+        try{
+            String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
+            Path filePath = FilePathUtil.getPath(inputFilePath);
+            if (!Files.exists(filePath)) {
+                return "404 Error: File does not exist.";
+            }
+            String newFilePathStr =  FilePathUtil.getCopyPathString(inputFilePath);
+
+            long fileSize = Files.size(filePath);
+            byte[] originalContent = new byte[(int) fileSize];
+            try (RandomAccessFile orginalFile = new RandomAccessFile(filePathStr, "r")){
+                orginalFile.read(originalContent);
+            }
+            try(RandomAccessFile newFile = new RandomAccessFile(newFilePathStr, "rw")){
+                newFile.write(originalContent);
+                return "200 File Copy successful.";
+            }
+
+        }catch (IOException e){
+            return "500 Error: " + e.getMessage();
+        }
+    }
 }
