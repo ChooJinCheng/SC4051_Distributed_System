@@ -18,8 +18,30 @@ public class ClientMain {
     //Init Client Param
     public static final Properties properties = PropertyUtil.getProperty();
     public static int requestID = 1;
+    public static int freshnessInterval = 60; // default freshness
+
+    private static void HandleFreshnessInterval(String[] args) {
+        try {
+            if (args.length == 0) {
+                throw new IllegalArgumentException("ERROR: No arguments found (You need to have one integer for freshnessInterval)");
+            }
+            freshnessInterval = Integer.parseInt(args[0]);
+            System.out.println("Successfully set freshnessInterval to " + freshnessInterval);
+        }
+        catch (NumberFormatException e) {
+            System.err.println("ERROR: The first argument must be a integer");
+            System.exit(1);
+        }
+        catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+    }
 
     public static void main(String[] args) {
+        // handle freshness Interval argument
+        HandleFreshnessInterval(args);
+
         // init handlers
         ClientCommandHandler clientCommandHandler = ClientCommandHandler.getInstance();
         ClientCacheHandler clientCacheHandler = ClientCacheHandler.getInstance();

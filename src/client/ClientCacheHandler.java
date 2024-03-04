@@ -16,7 +16,6 @@ public class ClientCacheHandler {
 
     private static ClientCacheHandler clientCacheHandler = null;
     private ClientSocketHandler cacheSocketHandler;
-    private int freshnessInterval = 60; // in seconds, later configure via java main argument
 
     public static synchronized ClientCacheHandler getInstance() {
         if (clientCacheHandler == null)
@@ -42,8 +41,8 @@ public class ClientCacheHandler {
                 if (checkSmelly(filePath, cacheData)) {
                     return null;
                 }
-                long currentFreshness = freshnessInterval - (Instant.now().getEpochSecond() - cacheData.clientLastValidated);
-                return cacheData.content.substring(0, length) + ", TIME TO EXPIRE (" + currentFreshness + ")";
+                long currentFreshness = ClientMain.freshnessInterval - (Instant.now().getEpochSecond() - cacheData.clientLastValidated);
+                return cacheData.content.substring(0, length) + ", TIME TO EXPIRE (" + currentFreshness + "s)";
             }
         }
         return null;
@@ -52,7 +51,7 @@ public class ClientCacheHandler {
     private boolean checkSmelly(String filePath, ClientCacheData data) {
         long currentTime = Instant.now().getEpochSecond();
         try {
-            if (currentTime - data.clientLastValidated >= freshnessInterval) {
+            if (currentTime - data.clientLastValidated >= ClientMain.freshnessInterval) {
                 // invalid entry
                 long serverModifiedTime = getServerModifiedTimeForFile(filePath);
                 if (serverModifiedTime == data.serverLastModifiedTimeInUnix) {
