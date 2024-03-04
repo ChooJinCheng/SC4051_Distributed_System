@@ -61,8 +61,8 @@ public class ClientSocketHandler {
                     if (Objects.equals(reply.getCommandType(), "READ")) {
                         // read the content, store in cache if cannot find
                         String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
-                        ClientCacheHandler.getInstance().cacheIfAbsent(reply.getFilePath(), Long.parseLong(data[1]),
-                                new ClientCacheData(Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
+                        ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),
+                                new ClientCacheData(Long.parseLong(data[1]), Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
                     }
                 }
             } catch (Exception e) {
