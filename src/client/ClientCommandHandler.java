@@ -1,7 +1,6 @@
 package client;
 
 import message.BaseMessage;
-import message.CopyMessage;
 import message.MonitorMessage;
 import message.RequestMessage;
 import models.MessageWrapper;
@@ -94,9 +93,9 @@ public class ClientCommandHandler {
                     throw new IllegalArgumentException("copy requires 1 arguments. You entered " + (inputs.length - 1));
                 }
                 filePath = inputs[1];
-                CopyMessage copyMessage = new CopyMessage(currRequestID,"COPY", filePath, "");
-                messageWrapper.setMessage(copyMessage);
-                messageWrapper.setMessageType(copyMessage.getClass().getSimpleName());
+                requestMessage = new RequestMessage(currRequestID, "COPY", filePath, "");
+                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                messageWrapper.setMessage(requestMessage);
                 break;
             case "exit":
                 System.exit(0);
