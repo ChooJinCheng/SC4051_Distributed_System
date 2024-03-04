@@ -101,7 +101,7 @@ public class ClientCommandHandler {
                 break;
             case "freshness":
                 if (inputs.length < 2) {
-                    throw new IllegalArgumentException("freshness requires 2 arguments. You entered " + (inputs.length - 1));
+                    throw new IllegalArgumentException("freshness requires 1 arguments. You entered " + (inputs.length - 1));
                 }
                 ClientMain.freshnessInterval = Integer.parseInt(inputs[1]);
                 System.out.println("Successfully set freshnessInterval to " + ClientMain.freshnessInterval);

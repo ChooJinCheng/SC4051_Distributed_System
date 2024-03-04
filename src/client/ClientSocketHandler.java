@@ -4,6 +4,7 @@ import message.ReplyMessage;
 import message.MessageWrapper;
 import utilities.CustomSerializationUtil;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -32,8 +33,8 @@ public class ClientSocketHandler {
     }
 
 
-    public ClientSocketHandler(Properties properties, int port) throws Exception {
-        this.socket = new DatagramSocket(port);
+    public ClientSocketHandler(Properties properties, String portName) throws Exception {
+        this.socket = new DatagramSocket(Integer.parseInt(properties.getProperty(portName)));
         this.serverAddress = InetAddress.getByName(properties.getProperty("SERVER_HOSTNAME"));
         this.serverPort = Integer.parseInt(properties.getProperty("SERVER_PORT"));
     }
@@ -52,19 +53,13 @@ public class ClientSocketHandler {
                     ReplyMessage reply = new ReplyMessage();
 
                     CustomSerializationUtil.unmarshal(reply, buffer);
+
                     System.out.println("Received from server: "
                             + "MessageID:" + messageID
-                            + "Command:" + reply.getCommandType()
+                            + ", Command:" + reply.getCommandType()
                             + ", StatusCode:" + reply.getStatusCode()
                             + ", StatusMessage:" + reply.getStatusMessage()
                             + "\nContent:" + reply.getContent());
-
-                    if (Objects.equals(reply.getCommandType(), "READ") && reply.getStatusCode() == 200) {
-                        // read the content, store in cache if cannot find
-                        String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
-                        ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),
-                                new ClientCacheData(Long.parseLong(data[1]), Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
-                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -79,6 +74,22 @@ public class ClientSocketHandler {
         socket.send(sendPacket);
     }
 
+
+//    public MessageWrapper receiveMessage() throws Exception {
+//        byte[] receiveData = new byte[1024]; // Adjust buffer size as needed
+//        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+//        socket.receive(receivePacket);
+//        // Process and print response
+//        ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
+//        String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
+//        String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
+//        ReplyMessage reply = new ReplyMessage();
+//
+//        CustomSerializationUtil.unmarshal(reply, buffer);
+//
+//        return new MessageWrapper(messageID, messageType, reply);
+//    }
+
     public String sendAndReceiveTogether(MessageWrapper message) throws Exception {
         try {
             sendMessage(message);
@@ -88,9 +99,32 @@ public class ClientSocketHandler {
             socket.receive(receivePacket);
             // Process and print response
             ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
+            String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
+            String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
             ReplyMessage reply = new ReplyMessage();
+
             CustomSerializationUtil.unmarshal(reply, buffer);
+
+            switch (reply.getCommandType()) {
+                case "READ":
+                    String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
+                    ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),
+                            new ClientCacheData(Long.parseLong(data[1]), Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
+                    break;
+                case "GETATTR":
+                    return reply.getContent();
+
+            }
+
+            System.out.println("Received from server: "
+                    + "MessageID:" + messageID
+                    + ", Command:" + reply.getCommandType()
+                    + ", StatusCode:" + reply.getStatusCode()
+                    + ", StatusMessage:" + reply.getStatusMessage()
+                    + "\nContent:" + reply.getContent());
+
             return reply.getContent();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

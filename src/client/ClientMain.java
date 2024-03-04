@@ -40,13 +40,14 @@ public class ClientMain {
         // init handlers
         ClientCommandHandler clientCommandHandler = ClientCommandHandler.getInstance();
         ClientCacheHandler clientCacheHandler = ClientCacheHandler.getInstance();
-
         System.out.println("Type help to see all available commands");
 
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            ClientSocketHandler clientSocketHandler = new ClientSocketHandler(properties, 4600);
-            clientSocketHandler.startReceivingMessages();
+            ClientSocketHandler mainSocketHandler = new ClientSocketHandler(properties, "CLIENT_MAIN_PORT");
+            ClientSocketHandler monitorSocketHandler = new ClientSocketHandler(properties, "CLIENT_MONITOR_PORT");
+            monitorSocketHandler.startReceivingMessages();
+
 
             while (true) {
                 MessageWrapper messageWrapper = new MessageWrapper();
@@ -73,7 +74,7 @@ public class ClientMain {
                     continue;
                 }
 
-                clientSocketHandler.sendMessage(messageWrapper);
+                mainSocketHandler.sendAndReceiveTogether(messageWrapper);
             }
 
         }

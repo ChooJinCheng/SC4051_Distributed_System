@@ -97,7 +97,7 @@ public class FileMonitorService {
             for (MonitorClient client : clients) {
                 try (DatagramSocket socket = new DatagramSocket()) {
                     InetAddress clientAddress = InetAddress.getByName(client.getClientAddress());
-                    int clientPort = client.getClientPort();
+                    int clientPort = Integer.parseInt(PropertyUtil.getProperty().getProperty("CLIENT_MONITOR_PORT"));
                     String serverAddress = PropertyUtil.getProperty().getProperty("SERVER_HOSTNAME");
                     String messageID = serverAddress + "/" + ServerRequestIDGenerator.getNextRequestId();
 

@@ -21,7 +21,7 @@ public class ClientCacheHandler {
 
     public ClientCacheHandler() {
         try {
-            cacheSocketHandler = new ClientSocketHandler(ClientMain.properties, 4601);
+            cacheSocketHandler = new ClientSocketHandler(ClientMain.properties, "CLIENT_CACHE_PORT");
         } catch (Exception e) {
 
         }
@@ -69,6 +69,7 @@ public class ClientCacheHandler {
         String messageID = clientAddress + "/" + ClientMain.requestID++;
         MessageWrapper messageWrapper = ClientCommandHandler.getInstance().ConvertCommandToObject(messageID, "getattr " + filepath);
         return Long.parseLong(cacheSocketHandler.sendAndReceiveTogether(messageWrapper));
+//        return 1234;
     }
 
     void cacheIfAbsentOrDifferent(String filePath, ClientCacheData data) {
