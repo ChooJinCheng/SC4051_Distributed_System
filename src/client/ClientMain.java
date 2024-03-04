@@ -69,8 +69,12 @@ public class ClientMain {
                     messageWrapper = clientCommandHandler.ConvertCommandToObject(messageID, input);
                     if (messageWrapper == null) continue;
                 }
-                catch (IllegalArgumentException e) {
-                    System.out.println("ERROR: " + e.getMessage() + ", see help for more info.");
+                catch (NumberFormatException e) {
+                    System.err.println("ERROR: One of the arguments entered is not a integer, see help for more info");
+                    continue;
+                }
+                catch (Exception e) {
+                    System.err.println("ERROR: " + e.getMessage() + ", see help for more info.");
                     continue;
                 }
 
