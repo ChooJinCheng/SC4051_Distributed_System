@@ -99,26 +99,26 @@ public class ClientSocketHandler {
     public String sendAndReceiveTogether(MessageWrapper message) throws Exception {
         try {
             int timeoutTimes = 0;
-            sendMessage(message);
-
-            byte[] receiveData = new byte[1024]; // Adjust buffer size as needed
+            byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            socket.setSoTimeout(timeout_duration);
 
             while (timeoutTimes < max_timeout) {
+
+                sendMessage(message);
+                socket.setSoTimeout(timeout_duration);
+
                 try {
                     socket.receive(receivePacket);
                     break;
-                }
-                catch (SocketTimeoutException e) {
+                } catch (SocketTimeoutException e) {
                     timeoutTimes++;
-                    System.err.println("RECEIVE MESSAGE TIMEOUT: " + timeoutTimes + "/" + max_timeout + ", trying again..");
+                    System.err.println("TIMEOUT: DID NOT RECEIVE MESSAGE: " + timeoutTimes + "/" + max_timeout + ", trying to send and receive the message again..");
                     if (timeoutTimes == max_timeout) {
                         throw new SocketTimeoutException("ERROR: Time out trying to receive message, try sending the command again.");
                     }
                 }
             }
-            // Process and print response
+
             ByteBuffer buffer = ByteBuffer.wrap(receivePacket.getData());
             String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
             String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
@@ -145,9 +145,9 @@ public class ClientSocketHandler {
                     + "\nContent:" + reply.getContent());
 
             return reply.getContent();
-
         } catch (Exception e) {
-            System.err.println(e.getMessage());;
+            System.err.println(e.getMessage());
+            ;
         }
         return null;
     }
