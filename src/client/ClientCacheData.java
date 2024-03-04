@@ -1,6 +1,5 @@
 package client;
 
-import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 
 public class ClientCacheData {

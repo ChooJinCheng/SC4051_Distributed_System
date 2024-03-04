@@ -1,15 +1,10 @@
 package client;
 
-import message.ReplyMessage;
-import models.MessageWrapper;
-import utilities.CustomSerializationUtil;
+import message.MessageWrapper;
 
-import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
 
 public class ClientCacheHandler {
     public HashMap<String, ClientCacheData> cache = new HashMap<>();

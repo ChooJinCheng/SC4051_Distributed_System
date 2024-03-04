@@ -1,4 +1,4 @@
-package models;
+package message;
 
 public class MessageWrapper {
     //IPADDRESS + / + ID

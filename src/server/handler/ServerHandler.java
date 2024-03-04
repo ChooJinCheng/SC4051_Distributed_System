@@ -2,7 +2,7 @@ package server.handler;
 
 import message.*;
 import models.AMORequestHistoryEntry;
-import models.MessageWrapper;
+import message.MessageWrapper;
 import server.services.FileAccessService;
 import server.services.FileMonitorService;
 import utilities.CustomSerializationUtil;

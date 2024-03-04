@@ -1,7 +1,6 @@
 package utilities;
 
 import message.BaseMessage;
-import models.Metadata;
 import models.MonitorClient;
 
 import java.lang.reflect.Field;
@@ -55,7 +54,7 @@ public class CustomSerializationUtil {
             byte[] lengthBytes = ByteBuffer.allocate(Integer.BYTES).putInt(stringBytes.length).array();
             List<byte[]> contentBytes = Arrays.asList(lengthBytes, stringBytes);
             return concatenateByteArrays(contentBytes);
-        } else if (value instanceof BaseMessage || value instanceof Metadata || value instanceof MonitorClient) {
+        } else if (value instanceof BaseMessage || value instanceof MonitorClient) {
             return marshal(value);
         }
         throw new IllegalArgumentException("Unsupported data type: " + value.getClass().getName());
@@ -74,11 +73,7 @@ public class CustomSerializationUtil {
         else if (fieldType == long.class || fieldType == Long.class) {
             return buffer.getLong();
         }
-        else if (fieldType == Metadata.class) {
-            Metadata newMetadata = new Metadata();
-            unmarshalObject(newMetadata, buffer);
-            return newMetadata;
-        } else if (fieldType == MonitorClient.class) {
+        else if (fieldType == MonitorClient.class) {
             MonitorClient newMonitorClient = new MonitorClient();
             unmarshalObject(newMonitorClient, buffer);
             return newMonitorClient;

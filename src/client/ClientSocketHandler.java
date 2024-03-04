@@ -1,15 +1,13 @@
 package client;
 
 import message.ReplyMessage;
-import models.MessageWrapper;
+import message.MessageWrapper;
 import utilities.CustomSerializationUtil;
 
-import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 public class ClientSocketHandler {
     private DatagramSocket socket;
@@ -55,6 +53,7 @@ public class ClientSocketHandler {
 
                     CustomSerializationUtil.unmarshal(reply, buffer);
                     System.out.println("Received from server: "
+                            + "MessageID:" + messageID
                             + "Command:" + reply.getCommandType()
                             + ", StatusCode:" + reply.getStatusCode()
                             + ", StatusMessage:" + reply.getStatusMessage()

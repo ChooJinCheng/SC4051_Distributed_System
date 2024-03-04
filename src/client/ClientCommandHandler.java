@@ -3,7 +3,7 @@ package client;
 import message.BaseMessage;
 import message.MonitorMessage;
 import message.RequestMessage;
-import models.MessageWrapper;
+import message.MessageWrapper;
 import models.MonitorClient;
 
 

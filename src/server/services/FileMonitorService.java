@@ -1,9 +1,8 @@
 package server.services;
 
-import message.BaseMessage;
 import message.ReplyMessage;
 import server.ServerRequestIDGenerator;
-import models.MessageWrapper;
+import message.MessageWrapper;
 import models.MonitorClient;
 import utilities.CustomSerializationUtil;
 import utilities.FileDataExtractorUtil;

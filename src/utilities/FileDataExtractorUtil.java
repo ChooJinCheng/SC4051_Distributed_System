@@ -7,7 +7,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.EnumSet;
-import java.util.Properties;
 
 /*
  * To define the behaviour of file traversal, amend in FileAttributesVisitor.java
