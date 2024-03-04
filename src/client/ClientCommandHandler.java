@@ -30,6 +30,7 @@ public class ClientCommandHandler {
         System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
         System.out.println("update <filepath> -- updates a section of a file offset by bytes");
         System.out.println("copy <filepath> -- copies a file to a new file");
+        System.out.println("freshness <duration:int> -- update freshness interval in client");
         System.out.println("exit -- exit system");
         System.out.println("============");
     }
@@ -98,6 +99,13 @@ public class ClientCommandHandler {
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 messageWrapper.setMessage(requestMessage);
                 break;
+            case "freshness":
+                if (inputs.length < 2) {
+                    throw new IllegalArgumentException("freshness requires 2 arguments. You entered " + (inputs.length - 1));
+                }
+                ClientMain.freshnessInterval = Integer.parseInt(inputs[1]);
+                System.out.println("Successfully set freshnessInterval to " + ClientMain.freshnessInterval);
+                return null;
             case "exit":
                 System.exit(0);
             default:
