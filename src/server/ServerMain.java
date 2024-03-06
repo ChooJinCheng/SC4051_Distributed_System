@@ -12,16 +12,21 @@ import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.Properties;
 
-
+/*
+* The Server's main execution. It handles all sockets operations such as receiving, sending, construction of datagrampackets
+* All processing of received messages and replies will be passed ot ServerHandler to be processed
+*/
 public class ServerMain {
     public static void main(String[] args) {
-        //Init Server Param
+        //Init Server Parameters. Server's configuration resides in config.properties
         Properties properties = PropertyUtil.getProperty();
         int port = Integer.parseInt(properties.getProperty("SERVER_PORT"));
+        //Indicates the probability for simulation of message loss
         double requestLossProbability = 0.2, replyLossProbability = 0.5;
 
         try (DatagramSocket socket = new DatagramSocket(port);
              BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            //Choice of starting the server as AtLeastOnce or AtMostOnce invocation semantic
             boolean atLeastOnce = handleInvocationInput(reader);
             String semanticMode = atLeastOnce ? "AtLeastOnce" : "AtMostOnce";
 
@@ -43,6 +48,7 @@ public class ServerMain {
 
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
+                //Process the message received and generate a reply
                 byte[] sendBuffer = serverHandler.processRequestAndGetReply(requestData);
                 DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
 
@@ -60,6 +66,9 @@ public class ServerMain {
         }
     }
 
+    /*
+     * Reading in User's input for invocation semantic choice
+     */
     private static boolean handleInvocationInput(BufferedReader reader) throws IOException {
         System.out.println("Input invocation semantics (0=AMO, 1=ALO): ");
         String input = reader.readLine();

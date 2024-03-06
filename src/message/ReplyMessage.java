@@ -1,7 +1,12 @@
 package message;
 
+/*
+ * ReplyMessage contains all the information needed for server reply to Client's request
+ */
 public class ReplyMessage extends BaseMessage{
+    //Status Code follows HTTP status codes to represent the service invocation status. e.g. 200(Success), 400(Bad request)...
     private int statusCode;
+    //Give a proper representation of the status code
     private String statusMessage;
 
     public ReplyMessage() {

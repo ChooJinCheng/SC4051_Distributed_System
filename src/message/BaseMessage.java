@@ -1,14 +1,16 @@
 package message;
 
+/*
+* BaseMessage class contains all common fields that all messages will have.
+*/
 public class BaseMessage {
+    //Command Type contains e.g. read, insert, monitor etc.
     private String commandType;
     private String filePath;
-    /*If Client request, command = insert, content = input from user
-    If Server reply, command = read, content = file data       */
+    //Contains the main message of the request/reply e.g. file data, error message
     private String content;
 
 
-    // Constructors, getters, setters, and other methods
     public BaseMessage() {
 
     }

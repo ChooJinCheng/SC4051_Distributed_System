@@ -15,14 +15,16 @@ import java.nio.file.*;
  * "rwd" Open for reading and writing, as with "rw", and also require that every update to the file's content be written synchronously to the underlying storage device.
  *
  * Path:
- * Client: //Need to provide filePath e.g. "ClientA\\test.txt" from client side
- * FullPath: "currentdirectory\\server_files\\ClientA\\test.txt
- * Folder: All files/directories that can be accessed by client will reside within serverFiles directory
+ * Client input: Need to provide filePath e.g. "ClientA\\test.txt" from client side
+ * FullPath: currentdirectory\\server_files\\ClientA\\test.txt
+ * Folder: All files/directories that can be accessed by client will reside within server_files directory indicated in the config.properties
+ *
+ * This service class executes read, insert, copy and ....
  * */
 public class FileAccessService {
-    //ToDo: Change return String error to throw error instead
     private static FileAccessService fileAccessService;
     private FileAccessService (){}
+    //Ensure only one instance of this service is used among multiple clients, preventing a race condition if multiple client were to access at a single time
     public static synchronized FileAccessService getInstance() {
         if (fileAccessService == null) {
             fileAccessService = new FileAccessService();
@@ -30,10 +32,16 @@ public class FileAccessService {
         return fileAccessService;
     }
 
+    /*
+     * This methods take in the client's input file path, offset and readLength and perform the reading on existing file in the server
+     */
     public String readFileContent(String inputFilePath, long inputOffset, int inputReadLength) {
         try {
+            //Obtaining full path with the use of FilePathUtil
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
+
+            //validity/Boundary checking on user's input to ensure service executes as intended
             if (!Files.exists(filePath)) {
                 return "404 Error: File does not exist.";
             }
@@ -47,6 +55,7 @@ public class FileAccessService {
                 return "400 Error: Input read length exceeds file length.";
             }
 
+            //Access the file on the server and read the content as requested by user's input
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "r")) {
                 randomAccessFile.seek(inputOffset);
 
@@ -60,10 +69,15 @@ public class FileAccessService {
         }
     }
 
+    /*
+     * This methods take in the client's input file path, offset and input content and perform an insertion on existing file in the server
+     */
     public String insertIntoFile(String inputFilePath, long inputOffset, String content) {
         try {
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
+
+            //validity/Boundary checking on user's input to ensure service executes as intended
             if (!Files.exists(filePath)) {
                 return "404 Error: File does not exist.";
             }
@@ -73,6 +87,7 @@ public class FileAccessService {
                 return "400 Error: Offset exceeds file length.";
             }
 
+            //Access file with read,write mode and insert the client's input content at specific offset
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "rw")) {
                 byte[] originalContent = new byte[(int) (fileSize - inputOffset)];
                 randomAccessFile.seek(inputOffset);

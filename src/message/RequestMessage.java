@@ -1,7 +1,12 @@
 package message;
 
+/*
+ * RequestMessage contains all the information needed for client to invoke any services available
+ */
 public class RequestMessage extends BaseMessage {
+    //Offset position for service read and insert
     private long offset;
+    //length to be read for service read
     private int readLength;
 
     public RequestMessage() {}

@@ -1,6 +1,8 @@
 package models;
 
-
+/*
+ * Object class representation for monitoring service information
+ */
 public class MonitorClient {
     private String clientAddress;
     private int clientPort;

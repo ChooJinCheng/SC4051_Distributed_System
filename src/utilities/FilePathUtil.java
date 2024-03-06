@@ -7,15 +7,23 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.Properties;
 
+/*
+ * This utility class implements the construction/manipulation of file paths
+ * */
 public class FilePathUtil {
     private static final Properties properties = PropertyUtil.getProperty();
     private static final Path projectPath = Paths.get(System.getProperty("user.dir"));
     private static final Path serverFilePath = projectPath.resolve(properties.getProperty("SERVER_FILE_DIR"));
 
+    /*
+     * This method concatenate the server file path with the user's given file path
+     * */
     public static String getFullPathString(String inputFilePath){
         return serverFilePath.resolve(inputFilePath).toString();
     }
-
+    /*
+     * This method return the actual path given the file path String
+     * */
     public static Path getPath(String inputFilePath){
         String filePathStr = getFullPathString(inputFilePath);
         return Paths.get(filePathStr);

@@ -11,7 +11,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  * FileVisitor Interface provides methods that are called during the traversal process at different stages: before and after visiting a directory, and before and after visiting a file.
  * FileAttributesVisitor implements FileVisitor to define the behavior during these different stages of traversal.
  *
- * */
+ */
 public class FileAttributesVisitor implements FileVisitor<Path> {
     private BasicFileAttributes fileAttributes;
     private byte[] fileContent;

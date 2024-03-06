@@ -1,9 +1,14 @@
 package message;
 
+/*
+ * MessageWrapper class contains all the information needed to send and receive messages in the Client-Server System
+ */
 public class MessageWrapper {
-    //IPADDRESS + / + ID
+    //MessageID is unique through the combination of IPADDRESS of Client/Server and Client/Server side ID generator e.g. 127.0.0.0/1
     private String messageID;
+    //MessageType indicates the message class required for unmarshalling of message object on both client and server side
     private String messageType;
+    //Message contains the actual message object of the request/reply e.g. ReplyMessage, RequestMessage
     private Object message;
 
     public MessageWrapper(){}

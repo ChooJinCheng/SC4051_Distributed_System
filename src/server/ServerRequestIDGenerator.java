@@ -1,5 +1,8 @@
 package server;
 
+/*
+ * This class advances the id by 1 for each message it has sent.
+ * */
 public class ServerRequestIDGenerator {
     private static final int MAX_REQUEST_ID = Integer.MAX_VALUE;
     private static int currentRequestId = 1;

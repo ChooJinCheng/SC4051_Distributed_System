@@ -2,6 +2,10 @@ package message;
 
 import models.MonitorClient;
 
+/*
+ * MonitorMessage class contains the information needed for monitoring a file such as ClientAddress, ClientPort and the interval of monitoring all these information
+ * is encapsulated within the MonitorClient class
+ */
 public class MonitorMessage extends BaseMessage{
 
     private MonitorClient monitorClient;
