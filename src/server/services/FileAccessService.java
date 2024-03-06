@@ -43,6 +43,10 @@ public class FileAccessService {
                 return "400 Error: Offset exceeds file length.";
             }
 
+            if (inputReadLength > fileSize) {
+                return "400 Error: Input read length exceeds file length.";
+            }
+
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "r")) {
                 randomAccessFile.seek(inputOffset);
 

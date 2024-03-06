@@ -14,6 +14,13 @@ public class MessageWrapper {
         this.message = message;
     }
 
+    @Override
+    public String toString() {
+        return "\tMessage ID: " + this.messageID
+                + ", Message Type: " + this.messageType
+                + ", Message: \n" + this.message.toString();
+    }
+
     public String getMessageID() {
         return messageID;
     }

@@ -15,6 +15,12 @@ public class MonitorMessage extends BaseMessage{
         this.monitorClient = monitorClient;
     }
 
+    @Override
+    public String toString() {
+        return "\t\t" + super.toString() + this.monitorClient
+                + "\n\t\tContent: " + super.getContent();
+    }
+
     public MonitorClient getMonitorClient() {
         return monitorClient;
     }

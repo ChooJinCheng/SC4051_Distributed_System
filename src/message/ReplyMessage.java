@@ -19,6 +19,13 @@ public class ReplyMessage extends BaseMessage{
         this.statusMessage = statusMessage;
     }
 
+    @Override
+    public String toString() {
+        return "\t\t" + super.toString() + "Status Code: " + this.statusCode +
+                ", Status Message: " + this.statusMessage
+                + "\n\t\tContent: " + super.getContent();
+    }
+
     public int getStatusCode() {
         return statusCode;
     }

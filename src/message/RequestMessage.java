@@ -15,6 +15,13 @@ public class RequestMessage extends BaseMessage {
         this.readLength = readLength;
     }
 
+    @Override
+    public String toString() {
+        return "\t\t" + super.toString() + "Offset: " + this.offset +
+                ", Read Length: " + this.readLength
+                + "\n\t\tContent: " + super.getContent();
+    }
+
     public long getOffset() {
         return offset;
     }

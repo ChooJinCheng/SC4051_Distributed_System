@@ -30,6 +30,7 @@ public class ClientCacheHandler {
     public String checkCache(String filePath, long offset, int length) throws Exception {
         if (cache.containsKey(filePath)) {
             ClientCacheData cacheData = cache.get(filePath);
+            System.out.println("Cache length: " + cacheData.length + ", Input Length: " + length);
             // cache hit
             if (cacheData.offset <= offset && cacheData.length >= length) {
                 // check whether cache still valid

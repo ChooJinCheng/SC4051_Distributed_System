@@ -6,7 +6,7 @@ import utilities.PropertyUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.*;
-import java.util.Objects;
+import java.sql.Timestamp;
 import java.util.Properties;
 
 public class ClientMain {
@@ -53,11 +53,6 @@ public class ClientMain {
                 MessageWrapper messageWrapper = new MessageWrapper();
                 String input = reader.readLine();
 
-                if (Objects.equals(input, "help")) {
-                    clientCommandHandler.HelpCommand();
-                    continue;
-                }
-
                 // send byte to server
                 try {
                     String clientAddress = InetAddress.getLocalHost().getHostAddress();
@@ -79,6 +74,7 @@ public class ClientMain {
 
         }
         catch (Exception e) {
+            System.out.println("ClientMain");
             e.printStackTrace();
         }
     }

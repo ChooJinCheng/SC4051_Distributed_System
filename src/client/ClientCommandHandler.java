@@ -9,6 +9,7 @@ import models.MonitorClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ClientCommandHandler {
 
@@ -28,7 +29,7 @@ public class ClientCommandHandler {
         System.out.println("help");
         System.out.println("monitor <filepath> <duration> -- monitors a certain file for updates");
         System.out.println("read <filepath> <offset> <noOfBytesToRead> -- reads a section of a file" );
-        System.out.println("update <filepath> -- updates a section of a file offset by bytes");
+        System.out.println("insert <filepath> <offset> <contentToInsert> -- updates a section of a file offset by bytes");
         System.out.println("copy <filepath> -- copies a file to a new file");
         System.out.println("freshness <duration:int> -- update freshness interval in client");
         System.out.println("exit -- exit system");
@@ -46,6 +47,9 @@ public class ClientCommandHandler {
 //         String ipAddress = InetAddress.getLocalHost().getHostAddress();
 //        String requestID = ipAddress + "/" + currRequestID;
         switch (command) {
+            case "help":
+                clientCommandHandler.HelpCommand();
+                return null;
             case "monitor":
                 if (inputs.length < 3) {
                     throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
@@ -76,6 +80,20 @@ public class ClientCommandHandler {
 
                 RequestMessage requestMessage = new RequestMessage("READ", filePath,
                         "", offset, length);
+                messageWrapper.setMessageID(currRequestID);
+                messageWrapper.setMessage(requestMessage);
+                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                break;
+            case "insert":
+                if (inputs.length < 4) {
+                    throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
+                }
+                filePath = inputs[1];
+                offset = Long.parseLong(inputs[2]);
+                String content = inputs[3];
+
+                requestMessage = new RequestMessage("INSERT", filePath,
+                        content, offset, 0);
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(requestMessage);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());

@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.sql.Timestamp;
 import java.util.Properties;
 
 
@@ -17,6 +18,7 @@ public class ServerMain {
         //Init Server Param
         Properties properties = PropertyUtil.getProperty();
         int port = Integer.parseInt(properties.getProperty("SERVER_PORT"));
+        double requestLossProbability = 0.2, replyLossProbability = 0.5;
 
         try (DatagramSocket socket = new DatagramSocket(port);
              BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
@@ -24,8 +26,8 @@ public class ServerMain {
             String semanticMode = atLeastOnce ? "AtLeastOnce" : "AtMostOnce";
 
             ServerHandler serverHandler = new ServerHandler(atLeastOnce);
-            System.out.println("Server is on invocation semantic " + semanticMode);
-            System.out.println("Server is listening on port " + port);
+            System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]" + " Server is on invocation semantic " + semanticMode);
+            System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]" + " Server is listening on port " + port);
 
             while (true) {
                 byte[] receiveBuffer = new byte[1024];
@@ -33,10 +35,24 @@ public class ServerMain {
                 socket.receive(receivePacket);
                 byte[] requestData = receivePacket.getData();
 
+                //Simulate packet loss of request message
+                if(Math.random() < requestLossProbability){
+                    System.out.println("[" + new Timestamp(System.currentTimeMillis())  + "]"  + " Packet loss of request message occurred");
+                    continue;
+                }
+
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
                 byte[] sendBuffer = serverHandler.processRequestAndGetReply(requestData);
                 DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
+
+                //Simulate packet loss of reply message
+                if(Math.random() < replyLossProbability){
+                    System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"   +" Packet loss of reply message occurred");
+                    continue;
+                }
+
+                System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"   + " Reply message sent to IP: " + clientAddress + ", Port: " + clientPort);
                 socket.send(sendPacket);
             }
         } catch (Exception e) {
@@ -57,17 +73,3 @@ public class ServerMain {
         return "1".equals(input);
     }
 }
-
-/*String filePath = "test.txt";
-FileMonitorService fileMonitorService = new FileMonitorService();
-
-MonitorClient monitorClient1 = new MonitorClient();
-        monitorClient1.setMonitorInterval(15);
-        monitorClient1.setClientPort(4600);
-        monitorClient1.setClientAddress("localhost");
-MonitorClient monitorClient2 = new MonitorClient();
-        monitorClient2.setMonitorInterval(15);
-        monitorClient2.setClientPort(4601);
-        monitorClient2.setClientAddress("localhost");
-        fileMonitorService.registerClient(filePath, monitorClient1);
-        fileMonitorService.registerClient(filePath, monitorClient2);*/

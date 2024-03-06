@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
@@ -64,7 +65,7 @@ public class FileMonitorService {
                 runningThreads.put(fullFilePath, new AtomicBoolean(true));
 
                 Thread monitoringThread = new Thread(() -> {
-                    System.out.println("Thread for filepath " + fullFilePath + " has started");
+                    System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]" + " Thread for filepath " + fullFilePath + " has started");
                     FileTime lastModifiedTime = FileDataExtractorUtil.getLastModifiedTime(fullFilePath);
                     while (runningThreads.get(fullFilePath).get()) {
                         try {
@@ -82,7 +83,7 @@ public class FileMonitorService {
                             throw new RuntimeException(e);
                         }
                     }
-                    System.out.println("Thread for filepath " + fullFilePath + " has terminated");
+                    System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]" + " Thread for filepath " + fullFilePath + " has terminated");
                 });
                 monitoringThread.start();
             }
@@ -108,6 +109,7 @@ public class FileMonitorService {
                     byte[] sendBuffer = CustomSerializationUtil.marshal(wrapperMessage);
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
                     socket.send(sendPacket);
+                    System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]" + " Alert sent to " + clientAddress + " for file path: " + fullFilePath);
                 } catch (IOException | IllegalAccessException e) {
                     e.printStackTrace();
                 }

@@ -3,12 +3,15 @@ package client;
 import message.ReplyMessage;
 import message.MessageWrapper;
 import utilities.CustomSerializationUtil;
+import utilities.MessageUtil;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 public class ClientSocketHandler {
     private DatagramSocket socket;
@@ -60,12 +63,7 @@ public class ClientSocketHandler {
 
                     CustomSerializationUtil.unmarshal(reply, buffer);
 
-                    System.out.println("Received from server: "
-                            + "MessageID:" + messageID
-                            + ", Command:" + reply.getCommandType()
-                            + ", StatusCode:" + reply.getStatusCode()
-                            + ", StatusMessage:" + reply.getStatusMessage()
-                            + "\nContent:" + reply.getContent());
+                    MessageUtil.printReplyMessage(messageID, reply.getCommandType(), reply.getStatusCode(), reply.getStatusMessage(), reply.getContent());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -112,9 +110,9 @@ public class ClientSocketHandler {
                     break;
                 } catch (SocketTimeoutException e) {
                     timeoutTimes++;
-                    System.err.println("TIMEOUT: DID NOT RECEIVE MESSAGE: " + timeoutTimes + "/" + max_timeout + ", trying to send and receive the message again..");
+                    System.err.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " TIMEOUT: DID NOT RECEIVE MESSAGE: " + timeoutTimes + "/" + max_timeout + ", trying to send and receive the message again..");
                     if (timeoutTimes == max_timeout) {
-                        throw new SocketTimeoutException("ERROR: Time out trying to receive message, try sending the command again.");
+                        throw new SocketTimeoutException("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " ERROR: Time out trying to receive message, try sending the command again.");
                     }
                 }
             }
@@ -123,26 +121,25 @@ public class ClientSocketHandler {
             String messageID = CustomSerializationUtil.unmarshalStringAttribute(buffer);
             String messageType = CustomSerializationUtil.unmarshalStringAttribute(buffer);
             ReplyMessage reply = new ReplyMessage();
-
+            String replyContent = "";
             CustomSerializationUtil.unmarshal(reply, buffer);
 
-            switch (reply.getCommandType()) {
-                case "READ":
-                    String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
-                    ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),
-                            new ClientCacheData(Long.parseLong(data[1]), Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
-                    break;
-                case "GETATTR":
-                    return reply.getContent();
+            if( reply.getStatusCode() == 200){
+                switch (reply.getCommandType()) {
+                    case "READ":
+                        String[] data = reply.getContent().split(","); // should return fileContent,offset,length, serverLastModifiedInUnix
+                        ClientCacheHandler.getInstance().cacheIfAbsentOrDifferent(reply.getFilePath(),
+                                new ClientCacheData(Long.parseLong(data[1]), Integer.parseInt(data[2]), data[0], Long.parseLong(data[3])));
+                        replyContent = data[0];
+                        break;
+                    case "GETATTR":
+                        return reply.getContent();
 
+                }
             }
 
-            System.out.println("Received from server: "
-                    + "MessageID:" + messageID
-                    + ", Command:" + reply.getCommandType()
-                    + ", StatusCode:" + reply.getStatusCode()
-                    + ", StatusMessage:" + reply.getStatusMessage()
-                    + "\nContent:" + reply.getContent());
+            replyContent = replyContent.isEmpty() ? reply.getContent() : replyContent;
+            MessageUtil.printReplyMessage(messageID, reply.getCommandType(), reply.getStatusCode(), reply.getStatusMessage(), replyContent);
 
             return reply.getContent();
 

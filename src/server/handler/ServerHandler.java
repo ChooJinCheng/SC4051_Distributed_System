@@ -10,6 +10,7 @@ import utilities.FileDataExtractorUtil;
 import utilities.MessageUtil;
 
 import java.nio.ByteBuffer;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +39,8 @@ public class ServerHandler {
 
         if(!atLeastOnce){
             if(processedRequests.containsKey(messageID)) {
-                System.out.println("Function not executed. Duplicate Request for: " + messageID);
+                System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " Duplicate Request for: " + messageID
+                        + "\nFunction not executed. Reply message retrieved from history.");
                 return processedRequests.get(messageID).getReplyMessage();
             }
         }
@@ -46,8 +48,9 @@ public class ServerHandler {
         if (messageType.equals(requestMessageClassName)) {
             RequestMessage requestMessage = new RequestMessage();
             CustomSerializationUtil.unmarshal(requestMessage, buffer);
-            int statusCode = processRequestMessage(requestMessage);
+            MessageUtil.printRequestMessage(messageID, messageType, requestMessage);
 
+            int statusCode = processRequestMessage(requestMessage);
             String replyContent = requestMessage.getContent();
             if (Objects.equals(requestMessage.getCommandType(), "READ") && statusCode == 200)
                 replyContent = requestMessage.getContent() + "," + requestMessage.getOffset() + "," + requestMessage.getReadLength() + "," + FileDataExtractorUtil.getLastModifiedTimeInUnix(requestMessage.getFilePath());
@@ -60,6 +63,8 @@ public class ServerHandler {
         } else if (messageType.equals(monitorMessageClassName)) {
             MonitorMessage monitorMessage = new MonitorMessage();
             CustomSerializationUtil.unmarshal(monitorMessage, buffer);
+            MessageUtil.printMonitorMessage(messageID, messageType, monitorMessage);
+
             int statusCode = processMonitorMessage(monitorMessage);
             ReplyMessage replyMessage = new ReplyMessage(monitorMessage.getCommandType(), monitorMessage.getFilePath(), monitorMessage.getContent());
             MessageUtil.setReplyStatusCode(statusCode, replyMessage);
@@ -68,12 +73,16 @@ public class ServerHandler {
             reply = CustomSerializationUtil.marshal(messageWrapper);
         } else {
             //ToDo: Throw error/exception
+            ReplyMessage replyMessage = new ReplyMessage("", "", "Message Type provided does not exist", 400, "Bad Request");
+            MessageWrapper messageWrapper = new MessageWrapper(messageID, replyMessageClassName, replyMessage);
+            reply = CustomSerializationUtil.marshal(messageWrapper);
         }
 
         if(!atLeastOnce){
             processedRequests.putIfAbsent(messageID, new AMORequestHistoryEntry(reply, System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)));
         }
 
+        System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " Reply for request: " + messageID + " processed");
         return reply;
     }
 
@@ -95,7 +104,7 @@ public class ServerHandler {
                 yield "200".concat(lastModifiedDate);
             }
             case "COPY" -> fileAccessService.copyFile(filePath);
-            default -> "";
+            default -> "400 Error: Command type does not exist.";
         };
 
         statusCode = MessageUtil.setMessageAndGetStatusCode(reply, requestMessage);

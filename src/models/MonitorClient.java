@@ -15,6 +15,13 @@ public class MonitorClient {
         this.monitorInterval = monitorInterval;
     }
 
+    @Override
+    public String toString() {
+        return "Client Address: " + this.clientAddress
+                + ", Client Port: " + this.clientPort
+                + ", Monitor Interval: " + this.monitorInterval;
+    }
+
     public String getClientAddress() {
         return clientAddress;
     }

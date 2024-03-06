@@ -12,10 +12,17 @@ public class BaseMessage {
     public BaseMessage() {
 
     }
+
     public BaseMessage(String commandType, String filePath, String content) {
         this.commandType = commandType;
         this.filePath = filePath;
         this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "Command Type: " + commandType +
+                ", File Path: " + filePath + ", ";
     }
 
     public String getCommandType() {

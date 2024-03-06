@@ -1,10 +1,26 @@
 package utilities;
 
-import message.BaseMessage;
-import message.ReplyMessage;
+import message.*;
+
+import java.sql.Timestamp;
 
 public class MessageUtil {
-
+    public static void printReplyMessage(String messageID, String commandType, int statusCode, String statusMessage, String content){
+        System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " Received from server: "
+                + "\n\tMessageID:" + messageID
+                + ", Command:" + commandType
+                + ", StatusCode:" + statusCode
+                + ", StatusMessage:" + statusMessage
+                + "\n\tContent:" + content);
+    }
+    public static void printRequestMessage(String messageID, String messageType, RequestMessage requestMessage){
+        MessageWrapper messageWrapper = new MessageWrapper(messageID, messageType, requestMessage);
+        System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " Server Received: \n" + messageWrapper);
+    }
+    public static void printMonitorMessage(String messageID, String messageType, MonitorMessage monitorMessage){
+        MessageWrapper messageWrapper = new MessageWrapper(messageID, messageType, monitorMessage);
+        System.out.println("[" + new Timestamp(System.currentTimeMillis()) + "]"  + " Server Received: \n" + messageWrapper);
+    }
     public static int setMessageAndGetStatusCode(String reply, BaseMessage requestMessage){
         int statusCode = Integer.parseInt(reply.substring(0,3));
         requestMessage.setContent(reply.substring(3));
