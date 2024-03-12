@@ -7,6 +7,7 @@ import message.MessageWrapper;
 import models.MonitorClient;
 
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -54,7 +55,8 @@ public class ClientCommandHandler {
                 if (inputs.length < 3) {
                     throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
                 }
-                MonitorClient monitorClient = new MonitorClient("localhost", 4600, Integer.parseInt(inputs[2]));
+                String clientIp = InetAddress.getLocalHost().getHostAddress();
+                MonitorClient monitorClient = new MonitorClient(clientIp, 4600, Integer.parseInt(inputs[2]));
                 MonitorMessage monitorMessage = new MonitorMessage("REGISTER", inputs[1],
                         "", monitorClient);
 
