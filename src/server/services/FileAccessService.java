@@ -127,4 +127,23 @@ public class FileAccessService {
             return "500 Error: " + e.getMessage();
         }
     }
+
+    public String clearFileContent(String inputFilePath){
+        try{
+            String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
+            Path filePath = FilePathUtil.getPath(inputFilePath);
+            if (!Files.exists(filePath)) {
+                return "404 Error: File does not exist.";
+            }
+
+            try(RandomAccessFile newFile = new RandomAccessFile(filePathStr, "rw")){
+                newFile.setLength(0); // This clears the content of the file.
+                return "200 File Content Clear successful.";
+            }
+
+        }catch (IOException e){
+            return "500 Error: " + e.getMessage();
+        }
+    }
+
 }

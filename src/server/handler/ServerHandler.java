@@ -132,6 +132,7 @@ public class ServerHandler {
                 yield "200".concat(lastModifiedDate);
             }
             case "COPY" -> fileAccessService.copyFile(filePath);
+            case "CLEAR" -> fileAccessService.clearFileContent(filePath);
             default -> "400 Error: Command type does not exist.";
         };
 

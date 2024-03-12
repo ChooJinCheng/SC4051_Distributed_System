@@ -33,6 +33,7 @@ public class ClientCommandHandler {
         System.out.println("insert <filepath> <offset> <contentToInsert> -- updates a section of a file offset by bytes");
         System.out.println("copy <filepath> -- copies a file to a new file");
         System.out.println("freshness <duration:int> -- update freshness interval in client");
+        System.out.println("clear <filepath> -- clear contents inside a file");
         System.out.println("exit -- exit system");
         System.out.println("============");
     }
@@ -126,6 +127,16 @@ public class ClientCommandHandler {
                 ClientMain.freshnessInterval = Integer.parseInt(inputs[1]);
                 System.out.println("Successfully set freshnessInterval to " + ClientMain.freshnessInterval);
                 return null;
+            case "clear":
+                if (inputs.length < 2) {
+                    throw new IllegalArgumentException("copy requires 1 arguments. You entered " + (inputs.length - 1));
+                }
+                filePath = inputs[1];
+                requestMessage = new RequestMessage("CLEAR", filePath, "");
+                messageWrapper.setMessageID(currRequestID);
+                messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
+                messageWrapper.setMessage(requestMessage);
+                break;
             case "exit":
                 System.exit(0);
             default:
