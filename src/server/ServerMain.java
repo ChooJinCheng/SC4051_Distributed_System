@@ -22,7 +22,8 @@ public class ServerMain {
         Properties properties = PropertyUtil.getProperty();
         int port = Integer.parseInt(properties.getProperty("SERVER_PORT"));
         //Indicates the probability for simulation of message loss
-        double requestLossProbability = 0.2, replyLossProbability = 0.5;
+        //double requestLossProbability = 0.2, replyLossProbability = 0.5;
+        double requestLossProbability = 0.0, replyLossProbability = 0.0;
 
         try (DatagramSocket socket = new DatagramSocket(port);
              BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {

@@ -56,7 +56,16 @@ public class FileMonitorService {
             if(!doesFilePathExist(fullFilePath))
                 return "404 Error: File does not exist.";
             //Create a list if file path does not exist and add the client to the list
-            registeredClients.computeIfAbsent(fullFilePath, k -> new ArrayList<>()).add(monitorClient);
+            List<MonitorClient> clients = registeredClients.computeIfAbsent(fullFilePath, k -> new ArrayList<>());
+
+            // Check if the list of clients already contains the IP address of the new client
+            boolean isDuplicate = clients.stream()
+                    .anyMatch(existingClient -> existingClient.getClientAddress().equals(monitorClient.getClientAddress()));
+
+            if(!isDuplicate)
+                clients.add(monitorClient);
+            else
+                return "403 Error: Duplicate IP address found";
 
             //Check if any running threads for the file path, if not start one
             if (!runningThreads.containsKey(fullFilePath) || !runningThreads.get(fullFilePath).get()) {

@@ -47,13 +47,16 @@ public class FileAccessService {
             }
 
             long fileSize = Files.size(filePath);
-            if (inputOffset >= fileSize) {
-                return "400 Error: Offset exceeds file length.";
-            }
+            if(fileSize == 0)
+                return "400 Error: There is no content in the file.";
 
-            if (inputReadLength > fileSize) {
+            if (inputOffset >= fileSize)
+                return "400 Error: Offset exceeds file length.";
+
+
+            if (inputReadLength > fileSize)
                 return "400 Error: Input read length exceeds file length.";
-            }
+
 
             //Access the file on the server and read the content as requested by user's input
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(filePathStr, "r")) {
