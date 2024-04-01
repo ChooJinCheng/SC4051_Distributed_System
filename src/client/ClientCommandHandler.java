@@ -1,6 +1,5 @@
 package client;
 
-import message.BaseMessage;
 import message.MonitorMessage;
 import message.RequestMessage;
 import message.MessageWrapper;
@@ -10,12 +9,16 @@ import models.MonitorClient;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+
+/*
+ *  Singleton instance that handles all commands input by the user
+ *  Will output a message object if need to send a message to the server
+ */
 public class ClientCommandHandler {
-
     private static ClientCommandHandler clientCommandHandler = null;
 
+    // Create the Singleton instance if it does not exist
     public static synchronized ClientCommandHandler getInstance()
     {
         if (clientCommandHandler == null)
@@ -24,6 +27,7 @@ public class ClientCommandHandler {
         return clientCommandHandler;
     }
 
+    // Output all commands possible as a guide for user to use the program
     public  void HelpCommand() {
         System.out.println("COMMANDS");
         System.out.println("============");
@@ -38,16 +42,22 @@ public class ClientCommandHandler {
         System.out.println("============");
     }
 
+    /*
+     *  Used by ClientMain to handle all user inputs
+     *  Converts command to message object if communicating with server
+     *  Returns null if is a client-side command
+     */
     public MessageWrapper ConvertCommandToObject(String currRequestID, String input) throws Exception {
         MessageWrapper messageWrapper = new MessageWrapper();
 
-
-//        String[] inputs = input.split(" ");
+        /*
+        *  split user inputs into an array for handling
+        *  index 0 is always the input command
+        */
         String[] inputs = parseArguments(input);
         String command = inputs[0];
-//         once server side ID change to string, change to this
-//         String ipAddress = InetAddress.getLocalHost().getHostAddress();
-//        String requestID = ipAddress + "/" + currRequestID;
+
+        // handle each command respectively
         switch (command) {
             case "help":
                 clientCommandHandler.HelpCommand();
@@ -57,10 +67,12 @@ public class ClientCommandHandler {
                     throw new IllegalArgumentException("monitor requires 2 arguments. You entered " + (inputs.length - 1));
                 }
                 String clientIp = InetAddress.getLocalHost().getHostAddress();
+                // Create a new monitor client and monitor message to be used to listen for messages from the server
                 MonitorClient monitorClient = new MonitorClient(clientIp, 4600, Integer.parseInt(inputs[2]));
                 MonitorMessage monitorMessage = new MonitorMessage("REGISTER", inputs[1],
                         "", monitorClient);
 
+                // wrap the message in a wrapper object to send to the server
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(monitorMessage);
                 messageWrapper.setMessageType(monitorMessage.getClass().getSimpleName());
@@ -69,6 +81,8 @@ public class ClientCommandHandler {
                 if (inputs.length < 4) {
                     throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
                 }
+
+                // assign arguments to the respective variable
                 String filePath = inputs[1];
                 Long offset = Long.parseLong(inputs[2]);
                 int length = Integer.parseInt(inputs[3]);
@@ -76,11 +90,13 @@ public class ClientCommandHandler {
                 // check cache for data first
                 var message = ClientCacheHandler.getInstance().checkCache(filePath, offset, length);
 
+                // if cache contains message, don't need to communicate with server, return null
                 if (message != null) {
-                    System.out.println("RETRIEVED FROM CACHE: " + message); // retrieve message from cache
-                    return null; // do not send command to server
+                    System.out.println("RETRIEVED FROM CACHE: " + message);
+                    return null;
                 }
 
+                // if cache does not contain data, create the message object to be sent to the server to read a file
                 RequestMessage requestMessage = new RequestMessage("READ", filePath,
                         "", offset, length);
                 messageWrapper.setMessageID(currRequestID);
@@ -89,48 +105,58 @@ public class ClientCommandHandler {
                 break;
             case "insert":
                 if (inputs.length < 4) {
-                    throw new IllegalArgumentException("read requires 3 arguments. You entered " + (inputs.length - 1));
+                    throw new IllegalArgumentException("insert requires 3 arguments. You entered " + (inputs.length - 1));
                 }
+                // assign arguments to the respective variable
                 filePath = inputs[1];
                 offset = Long.parseLong(inputs[2]);
                 String content = inputs[3];
 
+                // create a request message with insert commandType to be sent to the server
                 requestMessage = new RequestMessage("INSERT", filePath,
                         content, offset, 0);
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(requestMessage);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 break;
+            // getattr is used to get the server modified time for files - cache checking
             case "getattr":
                 if (inputs.length < 2) {
                     throw new IllegalArgumentException("getattr requires 1 arguments. You entered " + (inputs.length - 1));
                 }
+
+                // create a request message with getAttr commandType to be sent to the server
                 requestMessage = new RequestMessage("GETATTR", inputs[1], "");
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 messageWrapper.setMessage(requestMessage);
                 break;
             case "copy":
+                // copy requires 2 arguments
                 if (inputs.length < 2) {
                     throw new IllegalArgumentException("copy requires 1 arguments. You entered " + (inputs.length - 1));
                 }
                 filePath = inputs[1];
+                // create a request message with getAttr commandType to be sent to the server
                 requestMessage = new RequestMessage("COPY", filePath, "");
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessageType(requestMessage.getClass().getSimpleName());
                 messageWrapper.setMessage(requestMessage);
                 break;
             case "freshness":
+                // getattr freshness 2 arguments
                 if (inputs.length < 2) {
                     throw new IllegalArgumentException("freshness requires 1 arguments. You entered " + (inputs.length - 1));
                 }
+                // update the client's freshness interval
                 ClientMain.freshnessInterval = Integer.parseInt(inputs[1]);
                 System.out.println("Successfully set freshnessInterval to " + ClientMain.freshnessInterval);
                 return null;
             case "clear":
                 if (inputs.length < 2) {
-                    throw new IllegalArgumentException("copy requires 1 arguments. You entered " + (inputs.length - 1));
+                    throw new IllegalArgumentException("clear requires 1 arguments. You entered " + (inputs.length - 1));
                 }
+                // create a request message with clear commandType to be sent to the server
                 filePath = inputs[1];
                 requestMessage = new RequestMessage("CLEAR", filePath, "");
                 messageWrapper.setMessageID(currRequestID);
@@ -138,14 +164,13 @@ public class ClientCommandHandler {
                 messageWrapper.setMessage(requestMessage);
                 break;
             case "exit":
+                // exit the program
                 System.exit(0);
             default:
+                // invalid command
                 throw new IllegalArgumentException("Invalid command");
-                /*BaseMessage baseMessage = new BaseMessage("BLANK", "", input);
-                messageWrapper.setMessageID(currRequestID);
-                messageWrapper.setMessage(baseMessage);
-                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());*/
         }
+        // returns null if client-side command, returns messageWrapper object if communicating with server
         return messageWrapper;
     }
 
