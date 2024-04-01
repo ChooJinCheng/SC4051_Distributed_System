@@ -140,10 +140,11 @@ public class ClientCommandHandler {
             case "exit":
                 System.exit(0);
             default:
-                BaseMessage baseMessage = new BaseMessage("BLANK", "", input);
+                throw new IllegalArgumentException("Invalid command");
+                /*BaseMessage baseMessage = new BaseMessage("BLANK", "", input);
                 messageWrapper.setMessageID(currRequestID);
                 messageWrapper.setMessage(baseMessage);
-                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());
+                messageWrapper.setMessageType(baseMessage.getClass().getSimpleName());*/
         }
         return messageWrapper;
     }
