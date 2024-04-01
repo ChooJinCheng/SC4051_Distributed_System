@@ -149,33 +149,51 @@ public class ClientCommandHandler {
         return messageWrapper;
     }
 
+
+    /*
+     * This method takes in a string input from the user, and separate it into an array of arguments based on the space delimiter and double quotes , and returns it.
+     * It is similar to how command-line arguments are parsed.
+     * */
     private String[] parseArguments(String input) {
+
+        //  It starts with creating an empty list argsList to store the arguments and a StringBuilder sb to construct individual arguments.
+        //  A boolean flag inQuotes is used to track whether the current character is within quotes.
         List<String> argsList = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         boolean inQuotes = false;
 
+        // It converts the string into a character array using input.toCharArray()
+        // It them iterates over each character in the character array
         for (char ch : input.toCharArray()) {
+
+            //If the current character is a quotation mark ("\""), the method toggles the inQuotes flag
+            // but does not add the quotation mark to the StringBuilder (sb).
             if (ch == '\"') {
                 inQuotes = !inQuotes;
                 //skip adding " to sb
                 continue;
             }
 
+            // If the method encounters a space (' ') and inQuotes is false (meaning it's outside of a quoted segment),
+            // it then adds the current content of sb as an argument to argsList and reset the sb
             if (ch == ' ' && inQuotes == false) {
                 argsList.add(sb.toString());
                 //reset sb for next arg
                 sb = new StringBuilder();
+
+            // else it continues to append character to sb
             } else {
                 sb.append(ch);
             }
         }
 
-        // add the last argument if any
+        // Add the last argument if any
+        // This step ensures that the last argument is not missed, as there might not be a trailing space to trigger its addition.
         if (sb.length() > 0) {
             argsList.add(sb.toString());
         }
 
-        // convert list into array of args
+        // Convert list into array of args and returns it
         return argsList.toArray(new String[0]);
     }
 

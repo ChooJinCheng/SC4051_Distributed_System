@@ -107,20 +107,27 @@ public class FileAccessService {
         }
     }
 
+    /*
+     * This methods take in the client's input file path, and perform a copy on existing file in the server
+     */
     public String copyFile(String inputFilePath){
         try{
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
+            //validity/Boundary checking on user's input to ensure service executes as intended
             if (!Files.exists(filePath)) {
                 return "404 Error: File does not exist.";
             }
             String newFilePathStr =  FilePathUtil.getCopyPathString(inputFilePath);
 
+
+            // Try to read the existing file content and store them in byte array which is based on its file size
             long fileSize = Files.size(filePath);
             byte[] originalContent = new byte[(int) fileSize];
             try (RandomAccessFile orginalFile = new RandomAccessFile(filePathStr, "r")){
                 orginalFile.read(originalContent);
             }
+            // Try to write into the a new file based on the byte array
             try(RandomAccessFile newFile = new RandomAccessFile(newFilePathStr, "rw")){
                 newFile.write(originalContent);
                 return "200 File Copy successful.";
@@ -131,10 +138,14 @@ public class FileAccessService {
         }
     }
 
+    /*
+     * This methods take in the client's input file path, and clear content inside an existing file in the server
+     */
     public String clearFileContent(String inputFilePath){
         try{
             String filePathStr = FilePathUtil.getFullPathString(inputFilePath);
             Path filePath = FilePathUtil.getPath(inputFilePath);
+            //validity/Boundary checking on user's input to ensure service executes as intended
             if (!Files.exists(filePath)) {
                 return "404 Error: File does not exist.";
             }

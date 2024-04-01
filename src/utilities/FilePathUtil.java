@@ -29,23 +29,35 @@ public class FilePathUtil {
         return Paths.get(filePathStr);
     }
 
+
+    /*
+     * This method takes in a file path and generates a new file path for creating a copy of an existing file,
+     * and ensures the new path does not conflict with existing files.
+     * */
     public static String getCopyPathString(String inputFilePath) {
+        //Extract the original path and then get the file name
         Path originalPath = getPath(inputFilePath);
         String fileName = originalPath.getFileName().toString();
 
+        // Finds the index of the last period (.) in the file name, which typically separates the file name from its extension.
         int dotIndex = fileName.lastIndexOf('.');
         String baseName;
         String extensionType = "";
 
-        if (dotIndex > 0) {
+        // If dotIndex is greater than 0, it splits the fileName into baseName and extensionType
+        if  (dotIndex > 0) {
             baseName = fileName.substring(0, dotIndex);
             extensionType = fileName.substring(dotIndex); // eg .txt, .pdf
+        // else if there is no . or it's the first character (files starting with . but without an extension,)
+        // Then the entire fileName is treated as baseName with no extensionType
         } else {
             // eg .gitignore
             baseName = fileName;
         }
 
+        // Create the file name for the copy
         String modifiedFileName = baseName + " - Copy" + extensionType;
+        // Then create the file path for the copy
         Path modifiedPath = originalPath.getParent().resolve(modifiedFileName);
 
         // Check if the file exists and create a new name if necessary
